@@ -1,3 +1,10 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@500;700&display=swap");
+@import url("tldraw/tldraw.css");
+
+body {
+  font-family: "Inter";
+}
+
 #root {
   max-width: 1280px;
   margin: 0 auto;
