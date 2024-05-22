@@ -83,7 +83,12 @@ export default function StoreEventsExample() {
       functionBody = `return ${functionBody}`;
     }
     const func = new Function(argumentNames, functionBody);
-    let result = func(...argumentValues);
+    let result;
+    try {
+      result = func(...argumentValues);
+    } catch (error) {
+      console.error(error);
+    }
 
     // Queue up updates to cells
     outputCells.forEach((outputCell) => {
@@ -92,7 +97,7 @@ export default function StoreEventsExample() {
       if (typeof result === "number") {
         result = parseFloat(result.toFixed(1));
       }
-      const resultString = String(result);
+      const resultString = JSON.stringify(result);
       // eslint-disable-next-line react/prop-types
       if (resultString !== cellValues[id] && result !== undefined) {
         editor.store.update(outputCell.id, (record) => ({
