@@ -97,7 +97,12 @@ export default function StoreEventsExample() {
       if (typeof result === "number") {
         result = parseFloat(result.toFixed(1));
       }
-      const resultString = JSON.stringify(result);
+
+      // Remove quotes or double quotes if they exist
+      let resultString = JSON.stringify(result);
+      if (resultString.startsWith('"') && resultString.endsWith('"')) {
+        resultString = resultString.slice(1, -1); // string
+      }
       // eslint-disable-next-line react/prop-types
       if (resultString !== cellValues[id] && result !== undefined) {
         editor.store.update(outputCell.id, (record) => ({
@@ -160,7 +165,7 @@ export default function StoreEventsExample() {
             });
           } else if (to?.props?.geo === "rectangle") {
             // console.log("updated rectangle", to);
-            // propagate(to.id);
+            propagate(to.id);
           }
           // console.log("from", from);
           // console.log("to", to);
