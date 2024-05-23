@@ -85,18 +85,18 @@ export default function StoreEventsExample() {
     if (!functionBody.includes("return")) {
       functionBody = `return ${functionBody}`;
     }
-    const func = new Function(argumentNames, functionBody);
     let result;
     try {
+      const func = new Function(argumentNames, functionBody);
       result = func(...argumentValues);
     } catch (error) {
       // console.error(error);
       return;
     }
 
-    if (result === undefined) return;
+    // console.log("result", result);
 
-    console.log("result", result);
+    if (result === undefined) return;
 
     // Queue up updates to cells
     outputCells.forEach((outputCell) => {
