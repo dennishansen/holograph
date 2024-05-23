@@ -8,6 +8,8 @@ import castInput from "./castInput";
 
 // TODO: fractions lol
 
+// TODO: Propagate when arrows are made or when they are edited
+
 export default function StoreEventsExample() {
   const [editor, setEditor] = useState();
   const cellCache = useRef();
@@ -78,6 +80,7 @@ export default function StoreEventsExample() {
       castInput(value)
     );
     let propagator = propagators.find((prop) => prop.id === id);
+    if (!propagator) return; // Unattached arrow
     let functionBody = propagator.props.text;
     if (!functionBody.includes("return")) {
       functionBody = `return ${functionBody}`;
@@ -87,7 +90,7 @@ export default function StoreEventsExample() {
     try {
       result = func(...argumentValues);
     } catch (error) {
-      console.error(error);
+      // console.error(error);
     }
 
     // Queue up updates to cells
@@ -103,6 +106,8 @@ export default function StoreEventsExample() {
       if (resultString.startsWith('"') && resultString.endsWith('"')) {
         resultString = resultString.slice(1, -1); // string
       }
+
+      // Update cell if the result is different
       // eslint-disable-next-line react/prop-types
       if (resultString !== cellValues[id] && result !== undefined) {
         editor.store.update(outputCell.id, (record) => ({
