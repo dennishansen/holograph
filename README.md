@@ -1,7 +1,7 @@
 This is a propagator network simulator on top of tldraw
 Play with it live here https://holograph-1.vercel.app/
 
-Propagator networks enabling bi-directional computation via independently operating nodes- in the gif you can see one for converting temperatures. Propagators (squares) listen to changing inputs, run code, and update connected outputs.
+Propagator networks enable bi-directional computation via independently operating nodes. Propagators (squares) listen to changing inputs, run code, and update connected outputs.
 You can make your own here.
 - Put your variables in circles
 - Put your JS in squares (you can write a return or not)
