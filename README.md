@@ -1,8 +1,11 @@
-# React + Vite
+This is a propagator network simulator on top of tldraw
+Play with it live here https://holograph-1.vercel.app/
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
-
-Currently, two official plugins are available:
-
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+Propagator networks enabling bi-directional computation via independently operating nodes- in the gif you can see one for converting temperatures. Propagators (squares) listen to changing inputs, run code, and update connected outputs.
+You can make your own here.
+- Put your variables in circles
+- Put your JS in squares (you can write a return or not)
+- Draw arrows from circles to squares with text that matches the variables
+- Draw arrows from squares sot the circles to be updated.
+There's lot of awesome stuff than can be made with these (maybe everything?). If you want to have fun with it, try to make a conditional or a switch. Its fun :slightly_smiling_face:
+Cheers!
