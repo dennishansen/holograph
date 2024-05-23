@@ -91,7 +91,12 @@ export default function StoreEventsExample() {
       result = func(...argumentValues);
     } catch (error) {
       // console.error(error);
+      return;
     }
+
+    if (result === undefined) return;
+
+    console.log("result", result);
 
     // Queue up updates to cells
     outputCells.forEach((outputCell) => {
@@ -109,7 +114,7 @@ export default function StoreEventsExample() {
 
       // Update cell if the result is different
       // eslint-disable-next-line react/prop-types
-      if (resultString !== cellValues[id] && result !== undefined) {
+      if (resultString !== cellValues[id]) {
         editor.store.update(outputCell.id, (record) => ({
           id,
           ...record,
