@@ -5,6 +5,7 @@ import _ from "lodash";
 import { useCallback, useEffect, useState, useRef } from "react";
 import { Tldraw } from "tldraw";
 import castInput from "./castInput";
+import deepDiff from "./deepDiff";
 import { Analytics } from "@vercel/analytics/react";
 
 // TODO: fractions lol
@@ -23,17 +24,10 @@ export default function StoreEventsExample() {
       return acc;
     }, {});
 
-  const setAppToState = useCallback((editor) => {
-    setEditor(editor);
-    cellCache.current = getCellValues(editor);
-  }, []);
-
-  const propagate = (id) => {
+  const getObjects = (editor) => {
     let propagators = [];
     let arrows = [];
-    const cells = [];
-    let cellValues = getCellValues(editor);
-
+    let cells = [];
     editor.store.allRecords().forEach((record) => {
       const { type, typeName, props } = record;
       if (typeName === "shape")
@@ -49,6 +43,19 @@ export default function StoreEventsExample() {
           }
         }
     });
+
+    return { propagators, arrows, cells };
+  };
+
+  const setAppToState = useCallback((editor) => {
+    setEditor(editor);
+    cellCache.current = getCellValues(editor);
+  }, []);
+
+  const propagate = (id) => {
+    // console.log("propagating", id);
+    let cellValues = getCellValues(editor);
+    let { propagators, arrows, cells } = getObjects(editor);
 
     // Get input and output cells
     let inputCells = [];
@@ -142,26 +149,10 @@ export default function StoreEventsExample() {
       // Updated
       for (const [from, to] of Object.values(change.changes.updated)) {
         if (from.id.startsWith("shape") && to.id.startsWith("shape")) {
-          let diff = _.reduce(
-            from,
-            (result, value, key) =>
-              _.isEqual(value, to[key])
-                ? result
-                : result.concat([key, to[key]]),
-            []
-          );
-          if (diff?.[0] === "props") {
-            diff = _.reduce(
-              from.props,
-              (result, value, key) =>
-                _.isEqual(value, to.props[key])
-                  ? result
-                  : result.concat([key, to.props[key]]),
-              []
-            );
-          }
-          // console.log(`updated shape (${JSON.stringify(diff)})\n`);
-          if (to?.props?.geo === "ellipse") {
+          let diff = deepDiff(from, to);
+
+          // Updated cell text
+          if (to?.props?.geo === "ellipse" && diff["props.text"]) {
             const propagatorIdsToUpdate = editor.store
               .allRecords()
               .filter(
@@ -174,13 +165,48 @@ export default function StoreEventsExample() {
             propagatorIdsToUpdate.forEach((id) => {
               propagate(id);
             });
-          } else if (to?.props?.geo === "rectangle") {
+          }
+
+          // Updated propagator code
+          if (to?.props?.geo === "rectangle") {
             // console.log("updated rectangle", to);
             propagate(to.id);
           }
-          // console.log("from", from);
-          // console.log("to", to);
-          // propagate();
+
+          // Updated arrow connection
+          if (to.type === "arrow") {
+            let newStart =
+              diff["props.start.boundShapeId"] && to.props.end.boundShapeId;
+            let newEnd =
+              diff["props.end.boundShapeId"] && to.props.start.boundShapeId;
+            if (newStart || newEnd) {
+              editor.store.allRecords().forEach((record) => {
+                if (record?.props?.geo === "rectangle") {
+                  if (record.id === to.props.end.boundShapeId) {
+                    propagate(record.id);
+                  }
+                  if (record.id === to.props.start.boundShapeId) {
+                    propagate(record.id);
+                  }
+                }
+              });
+            }
+          }
+
+          // Updated arrow text
+          if (
+            to.type === "arrow" &&
+            diff["props.text"] &&
+            to.props.end.boundShapeId
+          ) {
+            editor.store.allRecords().forEach((record) => {
+              if (record?.props?.geo === "rectangle") {
+                if (record.id === to.props.end.boundShapeId) {
+                  propagate(record.id);
+                }
+              }
+            });
+          }
         }
       }
 
