@@ -5,6 +5,7 @@ import _ from "lodash";
 import { useCallback, useEffect, useState, useRef } from "react";
 import { Tldraw } from "tldraw";
 import castInput from "./castInput";
+import { Analytics } from "@vercel/analytics/react";
 
 // TODO: fractions lol
 
@@ -208,6 +209,7 @@ export default function StoreEventsExample() {
   return (
     <div style={{ display: "flex", width: "100%" }}>
       <Tldraw onMount={setAppToState} persistenceKey="holograph-1" />
+      <Analytics />
     </div>
   );
 }
