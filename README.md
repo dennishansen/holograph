@@ -3,7 +3,7 @@
 This is a propagator network simulator on top of tldraw
 Play with it live here https://holograph-1.vercel.app/
 
-###To run
+### To run
 ```
 npm run dev
 ```
