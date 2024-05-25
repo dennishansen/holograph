@@ -16,7 +16,7 @@ You can make your own here.
 - Draw arrows from squares sot the circles to be updated.
 There's lot of awesome stuff that can be made with these (maybe everything?).
 
-Fun stuff to try:
-- Make a timer!
-- Make a conditional and switch
-- Implement a new simulated universe
+Fun stuff to make:
+- A timer!
+- A conditional and switch
+- A new simulated universe
