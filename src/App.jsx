@@ -1,16 +1,16 @@
 import "./index.css";
 import "./App.css";
 
-import _ from "lodash";
 import { useCallback, useEffect, useState, useRef } from "react";
 import { Tldraw } from "tldraw";
 import castInput from "./castInput";
 import deepDiff from "./deepDiff";
+import getUniqueName from "./getUniqueName";
+import CustomHelpMenu from "./CustomHelpMenu";
+
 import { Analytics } from "@vercel/analytics/react";
 
 // TODO: fractions lol
-
-// TODO: Propagate when arrows are made or when they are edited
 
 export default function StoreEventsExample() {
   const [editor, setEditor] = useState();
@@ -54,35 +54,67 @@ export default function StoreEventsExample() {
 
   const propagate = (id) => {
     // console.log("propagating", id);
+
     let cellValues = getCellValues(editor);
     let { propagators, arrows, cells } = getObjects(editor);
 
     // Get input and output cells
     let inputCells = [];
     let outputCells = [];
-
+    let usedNames = [];
     arrows.forEach((arrow) => {
       const { start, end, text } = arrow.props;
       if (end.boundShapeId === id) {
         const cellId = start.boundShapeId;
         let inputCell = cells.find((cell) => cell.id === cellId);
-        let modifiedInputCell = { ...inputCell, variableName: text };
-        inputCells.push(modifiedInputCell);
+        if (inputCell) {
+          const variableName = text || getUniqueName();
+          let modifiedInputCell = { ...inputCell, variableName };
+          inputCells.push(modifiedInputCell);
+          usedNames.push(variableName);
+        }
       } else if (start.boundShapeId === id) {
         const cellId = end.boundShapeId;
         let outputCell = cells.find((cell) => cell.id === cellId);
-        let modifiedOutputCell = { ...outputCell, variableName: text };
-        outputCells.push(modifiedOutputCell);
+        if (outputCell) {
+          const variableName = text || getUniqueName();
+          let modifiedOutputCell = { ...outputCell, variableName: text };
+          outputCells.push(modifiedOutputCell);
+          usedNames.push(variableName);
+        }
       }
     });
 
+    // Get new values & props from input cells
     let newValues = {};
+    let newProps = {};
+    let error;
     inputCells.forEach((inputCell) => {
       const { props, variableName } = inputCell;
-      // eslint-disable-next-line react/prop-types
-      newValues[variableName] = props.text;
+
+      if (
+        // variableName !== undefined &&
+        variableName.startsWith('"') &&
+        variableName.endsWith('"')
+      ) {
+        // eslint-disable-next-line react/prop-types
+        newProps[variableName.slice(1, -1)] = castInput(props.text);
+      } else {
+        // eslint-disable-next-line react/prop-types
+        newValues[variableName] = props.text;
+      }
     });
 
+    // Update object with new props
+    // if (Object.keys(newProps).length > 0) {
+    //   editor.store.update(id, (record) => ({
+    //     id,
+    //     ...record,
+    //     props: { ...record.props, ...newProps },
+    //   }));
+    // }
+
+    // Run the function with new values
     const argumentNames = Object.keys(newValues);
     const argumentValues = Object.values(newValues).map((value) =>
       castInput(value)
@@ -99,37 +131,35 @@ export default function StoreEventsExample() {
       result = func(...argumentValues);
     } catch (error) {
       // console.error(error);
-      return;
     }
 
-    // console.log("result", result);
+    if (result !== undefined && !error) {
+      // Queue up updates to cells
+      outputCells.forEach((outputCell) => {
+        const { id } = outputCell;
 
-    if (result === undefined) return;
+        if (typeof result === "number") {
+          result = parseFloat(result.toFixed(2));
+        }
 
-    // Queue up updates to cells
-    outputCells.forEach((outputCell) => {
-      const { id } = outputCell;
+        // Remove quotes or double quotes if they exist
+        let resultString = JSON.stringify(result);
+        if (resultString.startsWith('"') && resultString.endsWith('"')) {
+          resultString = resultString.slice(1, -1); // string
+        }
 
-      if (typeof result === "number") {
-        result = parseFloat(result.toFixed(1));
-      }
-
-      // Remove quotes or double quotes if they exist
-      let resultString = JSON.stringify(result);
-      if (resultString.startsWith('"') && resultString.endsWith('"')) {
-        resultString = resultString.slice(1, -1); // string
-      }
-
-      // Update cell if the result is different
-      // eslint-disable-next-line react/prop-types
-      if (resultString !== cellValues[id]) {
-        editor.store.update(outputCell.id, (record) => ({
-          id,
-          ...record,
-          props: { ...record.props, text: resultString },
-        }));
-      }
-    });
+        // Update cell if the result is different
+        // Apply new props and value
+        // eslint-disable-next-line react/prop-types
+        if (resultString !== cellValues[id]) {
+          editor.store.update(outputCell.id, (record) => ({
+            id,
+            ...record,
+            props: { ...record.props, text: resultString },
+          }));
+        }
+      });
+    }
   };
 
   useEffect(() => {
@@ -141,8 +171,6 @@ export default function StoreEventsExample() {
       for (const record of Object.values(change.changes.added)) {
         if (record.typeName === "shape") {
           // console.log(`created shape (${JSON.stringify(record)})\n`);
-          // console.log("created shape", record);
-          // propagate();
         }
       }
 
@@ -161,15 +189,13 @@ export default function StoreEventsExample() {
                   record.props.start.boundShapeId === to.id
               )
               .map((record) => record.props.end.boundShapeId);
-            // console.log("propagatorIdsToUpdate", propagatorIdsToUpdate);
             propagatorIdsToUpdate.forEach((id) => {
               propagate(id);
             });
           }
 
           // Updated propagator code
-          if (to?.props?.geo === "rectangle") {
-            // console.log("updated rectangle", to);
+          if (to?.props?.geo === "rectangle" && diff["props.text"]) {
             propagate(to.id);
           }
 
@@ -214,8 +240,6 @@ export default function StoreEventsExample() {
       for (const record of Object.values(change.changes.removed)) {
         if (record.typeName === "shape") {
           // console.log(`deleted shape (${record.type})\n`);
-          // console.log("deleted shape", record);
-          // console.log("all records", editor.store.allRecords());
           // propagate();
         }
       }
@@ -232,9 +256,17 @@ export default function StoreEventsExample() {
     };
   }, [editor]);
 
+  const components = {
+    HelpMenu: CustomHelpMenu,
+  };
+
   return (
     <div style={{ display: "flex", width: "100%" }}>
-      <Tldraw onMount={setAppToState} persistenceKey="holograph-1" />
+      <Tldraw
+        onMount={setAppToState}
+        persistenceKey="holograph-1"
+        components={components}
+      />
       <Analytics />
     </div>
   );
