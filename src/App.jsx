@@ -68,7 +68,7 @@ export default function StoreEventsExample() {
         const cellId = start.boundShapeId;
         let inputCell = cells.find((cell) => cell.id === cellId);
         if (inputCell) {
-          const variableName = text || getUniqueName();
+          const variableName = text || getUniqueName(usedNames);
           let modifiedInputCell = { ...inputCell, variableName };
           inputCells.push(modifiedInputCell);
           usedNames.push(variableName);
@@ -77,7 +77,7 @@ export default function StoreEventsExample() {
         const cellId = end.boundShapeId;
         let outputCell = cells.find((cell) => cell.id === cellId);
         if (outputCell) {
-          const variableName = text || getUniqueName();
+          const variableName = text || getUniqueName(usedNames);
           let modifiedOutputCell = { ...outputCell, variableName: text };
           outputCells.push(modifiedOutputCell);
           usedNames.push(variableName);
@@ -106,13 +106,13 @@ export default function StoreEventsExample() {
     });
 
     // Update object with new props
-    // if (Object.keys(newProps).length > 0) {
-    //   editor.store.update(id, (record) => ({
-    //     id,
-    //     ...record,
-    //     props: { ...record.props, ...newProps },
-    //   }));
-    // }
+    if (Object.keys(newProps).length > 0) {
+      editor.store.update(id, (record) => ({
+        id,
+        ...record,
+        props: { ...record.props, ...newProps },
+      }));
+    }
 
     // Run the function with new values
     const argumentNames = Object.keys(newValues);
