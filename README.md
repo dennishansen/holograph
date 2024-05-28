@@ -1,6 +1,6 @@
-# Propagator Draw
+# Holograph
 
-This is a propagator network simulator on top of tldraw. 
+Holograph is a propagator network simulator on top of tldraw. 
 Play with it live here https://holograph-1.vercel.app/
 
 ![Bidirectional temperature converter](https://github.com/dennishansen/propagator-draw/blob/main/public/temp-converter.gif)
