@@ -195,7 +195,10 @@ export default function StoreEventsExample() {
           }
 
           // Updated propagator code
-          if (to?.props?.geo === "rectangle" && diff["props.text"]) {
+          if (
+            to?.props?.geo === "rectangle" &&
+            (diff["props.text"] || diff["x"] || diff["y"])
+          ) {
             propagate(to.id);
           }
 
