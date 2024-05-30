@@ -5,7 +5,7 @@ Holograph is a visual coding tool built on top of tldraw.
 ![Bidirectional temperature converter](https://github.com/dennishansen/propagator-draw/blob/main/public/temp-converter.gif)
 
 ## Play with it live
-holograph.so
+www.holograph.so
 
 ## Run it
 ```
