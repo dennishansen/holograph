@@ -36,7 +36,6 @@ const CustomMainMenu = ({ editor }) => {
         <EditSubmenu />
         <ViewSubmenu />
         <ExportFileContentSubMenu />
-        {/* <TldrawUiMenuGroup id="import"> */}
         <div
           style={{
             height: "1px",
@@ -52,7 +51,6 @@ const CustomMainMenu = ({ editor }) => {
           onSelect={importJSON}
         />
         <ExtrasGroup />
-        {/* </TldrawUiMenuGroup> */}
         <PreferencesGroup />
         <TldrawUiMenuGroup id="other">
           <TldrawUiMenuItem

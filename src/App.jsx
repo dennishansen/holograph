@@ -74,10 +74,8 @@ export default function StoreEventsExample() {
         const cellId = end.boundShapeId;
         let outputCell = cells.find((cell) => cell.id === cellId);
         if (outputCell) {
-          const variableName = text || getUniqueName(usedNames);
           let modifiedOutputCell = { ...outputCell, variableName: text };
           outputCells.push(modifiedOutputCell);
-          usedNames.push(variableName);
         }
       }
     });
@@ -117,6 +115,11 @@ export default function StoreEventsExample() {
       castInput(value)
     );
     let propagator = propagators.find((prop) => prop.id === id);
+
+    // if (!propagator?.props?.text?.includes(".")) {
+    //   console.log(propagator?.id, propagator?.props.text);
+    // }
+
     if (!propagator) return; // Unattached arrow
     let functionBody = propagator.props.text;
     if (!functionBody.includes("return")) {
@@ -191,7 +194,7 @@ export default function StoreEventsExample() {
           }
 
           // Debugging
-          // if (diff["x"] || diff["y"]) console.log("moved shape: ", to);
+          if (diff["x"] || diff["y"]) console.log("moved shape: ", to);
 
           // Updated propagator code
           if (to?.props?.geo === "rectangle" && diff["props.text"]) {

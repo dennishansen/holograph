@@ -27,16 +27,25 @@ const CustomHelpMenu = () => {
           marginTop: 2,
         }}
       ></div>
-      <p
+      <div
         style={{
           color: "rgba(0, 0, 0, 0.4)",
           textAlign: "left",
-          padding: "5px 10px 7px 10px",
+          padding: "12px 12px",
           margin: 0,
         }}
       >
-        Holograph
-      </p>
+        <p style={{ margin: 0 }}>Holograph</p>
+        <div style={{ height: 4 }}></div>
+        <p
+          style={{
+            margin: 0,
+            userSelect: "text",
+          }}
+        >
+          dennis@holograph.so
+        </p>
+      </div>
     </DefaultHelpMenu>
   );
 };
