@@ -7,6 +7,7 @@ import castInput from "./castInput";
 import deepDiff from "./deepDiff";
 import getUniqueName from "./getUniqueName";
 import CustomHelpMenu from "./CustomHelpMenu";
+import CustomMainMenu from "./CustomMainMenu";
 
 import { Analytics } from "@vercel/analytics/react";
 
@@ -14,7 +15,6 @@ import { Analytics } from "@vercel/analytics/react";
 
 export default function StoreEventsExample() {
   const [editor, setEditor] = useState();
-  const cellCache = useRef();
 
   const getCellValues = (editor) =>
     editor.store.allRecords().reduce((acc, record) => {
@@ -49,12 +49,9 @@ export default function StoreEventsExample() {
 
   const setAppToState = useCallback((editor) => {
     setEditor(editor);
-    cellCache.current = getCellValues(editor);
   }, []);
 
   const propagate = (id) => {
-    // console.log("propagating", id);
-
     let cellValues = getCellValues(editor);
     let { propagators, arrows, cells } = getObjects(editor);
 
@@ -149,7 +146,6 @@ export default function StoreEventsExample() {
         }
 
         // Update cell if the result is different
-        // Apply new props and value
         // eslint-disable-next-line react/prop-types
         if (resultString !== cellValues[id]) {
           editor.store.update(outputCell.id, (record) => ({
@@ -193,6 +189,9 @@ export default function StoreEventsExample() {
               propagate(id);
             });
           }
+
+          // Debugging
+          // if (diff["x"] || diff["y"]) console.log("moved shape: ", to);
 
           // Updated propagator code
           if (to?.props?.geo === "rectangle" && diff["props.text"]) {
@@ -258,6 +257,7 @@ export default function StoreEventsExample() {
 
   const components = {
     HelpMenu: CustomHelpMenu,
+    MainMenu: (...props) => <CustomMainMenu {...props} editor={editor} />,
   };
 
   return (
