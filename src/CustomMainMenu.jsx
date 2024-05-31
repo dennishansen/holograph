@@ -36,16 +36,23 @@ const CustomMainMenu = ({ editor }) => {
         <EditSubmenu />
         <ViewSubmenu />
         <ExportFileContentSubMenu />
-        <TldrawUiMenuGroup id="import">
-          <TldrawUiMenuItem
-            id="import"
-            label="Import JSON"
-            icon="external-link"
-            readonlyOk
-            onSelect={importJSON}
-          />
-        </TldrawUiMenuGroup>
+        {/* <TldrawUiMenuGroup id="import"> */}
+        <div
+          style={{
+            height: "1px",
+            margin: "4px 0",
+            backgroundColor: "var(--color-divider)",
+          }}
+        ></div>
+        <TldrawUiMenuItem
+          id="import"
+          label="Import JSON"
+          icon="external-link"
+          readonlyOk
+          onSelect={importJSON}
+        />
         <ExtrasGroup />
+        {/* </TldrawUiMenuGroup> */}
         <PreferencesGroup />
         <TldrawUiMenuGroup id="other">
           <TldrawUiMenuItem
