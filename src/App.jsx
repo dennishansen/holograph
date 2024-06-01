@@ -13,6 +13,19 @@ import { Analytics } from "@vercel/analytics/react";
 
 // TODO: fractions lol
 
+const basePropsKeys = [
+  "parentId",
+  "id",
+  "typeName",
+  "type",
+  "x",
+  "y",
+  "rotation",
+  "index",
+  "opacity",
+  "isLocked",
+];
+
 export default function StoreEventsExample() {
   const [editor, setEditor] = useState();
 
@@ -102,10 +115,22 @@ export default function StoreEventsExample() {
 
     // Update object with new props
     if (Object.keys(newProps).length > 0) {
+      // Split newprops into baseProps and customProps
+      let baseProps = {};
+      let customProps = {};
+      Object.entries(newProps).forEach(([key, value]) => {
+        if (basePropsKeys.includes(key)) {
+          baseProps[key] = value;
+        } else {
+          customProps[key] = value;
+        }
+      });
+
       editor.store.update(id, (record) => ({
         id,
         ...record,
-        props: { ...record.props, ...newProps },
+        ...baseProps,
+        props: { ...record.props, ...customProps },
       }));
     }
 
