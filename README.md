@@ -13,13 +13,13 @@ npm run dev
 ```
 
 ## How it works
-Holograph is based on [Propagator Networks](https://dspace.mit.edu/handle/1721.1/54635), which enable bi-directional computation via independently operating nodes called Propagators. The propagators (rectangles) listen to changing values (circles), run code, and update other values (other circles).
+Holograph is based on [Propagator Networks](https://dspace.mit.edu/handle/1721.1/54635). Propagators (rectangles) listen to changing input values (circles), run code, and update other values (other circles).
 
 ### To use it
 - Put your variables in circles
-- Put your JS in rectangles (you can write a return or not)
-- Draw arrows from circles to squares with text that matches the variables
-- Draw arrows from squares sot the circles to be updated.
+- Put your JavaScript in rectangles (you can write a return or not)
+- Connect inputs by drawing arrows from circles to rectangles with text that matches the code's variables
+- Connect output by drawing arrows from rectangles to circles.
 
 ### Fun stuff to try
 There's a lot of awesome stuff that can be made with these (maybe everything?).
