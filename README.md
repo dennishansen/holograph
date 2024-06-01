@@ -1,6 +1,6 @@
 # Holograph
 
-Holograph is a hybrid visual/textual coding tool built on tldraw.
+Holograph is a visual coding tool built on tldraw.
 
 ![Bidirectional temperature converter](https://github.com/dennishansen/propagator-draw/blob/main/public/temp-converter.gif)
 
