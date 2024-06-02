@@ -11,7 +11,7 @@ import {
 } from "tldraw";
 
 const CustomMainMenu = ({ editor }) => {
-  const importJSON = () => {
+  const importJSON = (editor) => {
     // Open file selection dialog
     const input = document.createElement("input");
     input.type = "file";
@@ -48,7 +48,7 @@ const CustomMainMenu = ({ editor }) => {
           label="Import JSON"
           icon="external-link"
           readonlyOk
-          onSelect={importJSON}
+          onSelect={() => importJSON(editor)}
         />
         <ExtrasGroup />
         <PreferencesGroup />

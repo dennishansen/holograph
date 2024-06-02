@@ -1,7 +1,7 @@
 import "./index.css";
 import "./App.css";
 
-import { useCallback, useEffect, useState, useRef } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Tldraw } from "tldraw";
 import castInput from "./castInput";
 import deepDiff from "./deepDiff";
@@ -58,6 +58,15 @@ export default function StoreEventsExample() {
     });
 
     return { propagators, arrows, cells };
+  };
+
+  const getIsFirstVisit = () => {
+    if (!localStorage.getItem("visited")) {
+      localStorage.setItem("visited", "true");
+      return true;
+    } else {
+      return false;
+    }
   };
 
   const setAppToState = useCallback((editor) => {
@@ -186,6 +195,26 @@ export default function StoreEventsExample() {
     }
   };
 
+  // Load tutorial to current page if its empty and its the first load
+  useEffect(() => {
+    if (!editor) return;
+    const allRecords = editor.store.allRecords();
+    const canvasRecords = allRecords.filter(
+      ({ id }) => id.startsWith("shape") || id.startsWith("asset")
+    );
+    if (canvasRecords.length === 0 && getIsFirstVisit()) {
+      fetch("/tutorial.json")
+        .then((response) => {
+          if (response.ok) return response.json();
+        })
+        .then((tutorial) => {
+          editor.createAssets(tutorial.assets);
+          editor.createShapes(tutorial.shapes);
+        });
+      // .catch((error) => console.error(error));
+    }
+  }, [editor]);
+
   useEffect(() => {
     if (!editor) return;
 
@@ -219,7 +248,7 @@ export default function StoreEventsExample() {
           }
 
           // Debugging
-          if (diff["x"] || diff["y"]) console.log("moved shape: ", to);
+          // if (diff["x"] || diff["y"]) console.log("moved shape: ", to);
 
           // Updated propagator code
           if (to?.props?.geo === "rectangle" && diff["props.text"]) {
