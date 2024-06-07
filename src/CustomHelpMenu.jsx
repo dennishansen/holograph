@@ -35,7 +35,10 @@ const CustomHelpMenu = () => {
           margin: 0,
         }}
       >
-        <p style={{ margin: 0 }}>Holograph</p>
+        <div style={{ display: "flex", flexDirection: "row" }}>
+          <img src="/holograph-icon.svg" alt="Holograph logo" />
+          <p style={{ margin: 0, marginLeft: 4 }}>Holograph</p>
+        </div>
         <div style={{ height: 4 }}></div>
         <p
           style={{
