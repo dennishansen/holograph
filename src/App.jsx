@@ -8,7 +8,7 @@ import deepDiff from "./deepDiff";
 import getUniqueName from "./getUniqueName";
 import CustomHelpMenu from "./CustomHelpMenu";
 import CustomMainMenu from "./CustomMainMenu";
-
+import SharePanel from "./SharePanel";
 import { Analytics } from "@vercel/analytics/react";
 
 // TODO: fractions lol
@@ -315,6 +315,7 @@ export default function StoreEventsExample() {
   const components = {
     HelpMenu: CustomHelpMenu,
     MainMenu: (...props) => <CustomMainMenu {...props} editor={editor} />,
+    SharePanel,
   };
 
   return (
