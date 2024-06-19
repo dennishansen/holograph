@@ -14,6 +14,33 @@ const basePropsKeys = [
   "isLocked",
 ];
 
+const propTypes = {
+  x: "number",
+  y: "number",
+  rotation: "number",
+  isLocked: "boolean",
+  opacity: "number",
+  id: "string",
+  type: "string",
+  w: "number",
+  h: "number",
+  geo: "string",
+  color: "string",
+  labelColor: "string",
+  fill: "string",
+  dash: "string",
+  size: "string",
+  font: "string",
+  text: "string",
+  align: "string",
+  verticalAlign: "string",
+  growY: "number",
+  url: "string",
+  parentId: "string",
+  index: "string",
+  typeName: "string",
+};
+
 const errorString = "invalid-code-kSfd73";
 
 const getValue = (obj, path) => {
@@ -211,8 +238,17 @@ const update = (id, editor) => {
     } else if (isInQuotes(arrowText)) {
       // Prop
       const propName = arrowText.slice(1, -1);
-      //// Allow all text to come in as a string
-      const value = propName === "text" ? source : castInput(source);
+      let value;
+      const propType = propTypes[propName];
+      if (propType === "string") {
+        value = source; // Allow all text to come in as a string
+      } else if (propType === "number") {
+        if (source !== "") {
+          value = Number(source);
+        }
+      } else {
+        value = castInput(source); // Catch all
+      }
       newProps[propName] = value;
     } else if (endShape.props.geo === "rectangle") {
       // Arg
