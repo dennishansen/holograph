@@ -21,7 +21,7 @@ Holograph is based on [Propagator Networks](https://dspace.mit.edu/handle/1721.1
 - Connect inputs by drawing arrows from circles to rectangles with text that matches the code's variables
 - Connect output by drawing arrows from rectangles to circles.
 
-Download the [tutorial](https://github.com/dennishansen/holograph/blob/main/public/tutorial.json) to learn more and see examples
+Download and import the [tutorial](https://github.com/dennishansen/holograph/blob/main/public/tutorial.json) to learn more. Also, click the explore button in the top-right of the site to download examples.
 
 ### Fun stuff to try
 There's a lot of awesome stuff that can be made with these (maybe everything?).
