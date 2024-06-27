@@ -65,6 +65,13 @@ const CustomMainMenu = ({ editor }) => {
               );
             }}
           />
+          <TldrawUiMenuItem
+            id="twitter link"
+            label="Follow me on X"
+            icon="external-link"
+            readonlyOk
+            onSelect={() => window.open("https://x.com/dennizor")}
+          />
         </TldrawUiMenuGroup>
       </DefaultMainMenu>
     </div>
