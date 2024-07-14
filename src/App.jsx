@@ -10,7 +10,7 @@ import SharePanel from "./SharePanel";
 import { Analytics } from "@vercel/analytics/react";
 import update from "./update";
 
-const ignoredKeys = ["meta.result", "meta.code"];
+const ignoredKeys = ["meta.result", "meta.code", "meta.nextClick"];
 
 export default function StoreEventsExample() {
   const [editor, setEditor] = useState();
@@ -107,6 +107,30 @@ export default function StoreEventsExample() {
     return () => {
       cleanupFunction();
     };
+  }, [editor]);
+
+  useEffect(() => {
+    if (!editor) return;
+
+    const handleEvent = (data) => {
+      // console.log("name", data.name);
+      if (data.name === "pointer_down") {
+        const point = data.point;
+        const pagePoint = editor.screenToPage(point);
+        const shape = editor.getShapeAtPoint(pagePoint, { hitInside: true });
+        if (shape !== undefined) {
+          editor.updateShape({
+            id: shape.id,
+            meta: { nextClick: { ...pagePoint, timeStamp: Date.now() } },
+          });
+          update(shape.id, editor);
+        }
+      } else if (data.name === "pointer_move") {
+        // Hover events, etc
+      }
+    };
+
+    editor.on("event", handleEvent);
   }, [editor]);
 
   const components = {

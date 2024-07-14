@@ -1,5 +1,6 @@
 import getUniqueName from "./getUniqueName";
 import castInput from "./castInput";
+import _ from "lodash";
 
 const basePropsKeys = [
   "parentId",
@@ -39,6 +40,7 @@ const propTypes = {
   parentId: "string",
   index: "string",
   typeName: "string",
+  points: "object",
 };
 
 const errorString = "invalid-code-kSfd73";
@@ -73,16 +75,24 @@ const getValueFromShape = (arrowText, shape, result) => {
   return undefined;
 };
 
-const getPropValue = (arrowText, currentShape) => {
-  const propKey = arrowText.slice(1, -1);
-  const isBaseProp = basePropsKeys.includes(propKey);
-  const propValuePath = isBaseProp ? propKey : "props." + propKey;
-  const propValue = getValue(currentShape, propValuePath);
-
-  if (propValuePath === "props.text") {
-    return propValue;
+const getPropValue = (arrowText, shape) => {
+  if (arrowText === "'click'") {
+    if (shape?.meta?.click) {
+      return JSON.stringify(shape.meta.click);
+    }
+  } else if (arrowText === "'self'") {
+    return JSON.stringify(shape);
   } else {
-    return JSON.stringify(truncateDecimals(propValue));
+    const propKey = arrowText.slice(1, -1);
+    const isBaseProp = basePropsKeys.includes(propKey);
+    const propValuePath = isBaseProp ? propKey : "props." + propKey;
+    const propValue = getValue(shape, propValuePath);
+
+    if (propValuePath === "props.text") {
+      return propValue;
+    } else {
+      return JSON.stringify(truncateDecimals(propValue));
+    }
   }
 };
 
@@ -125,7 +135,7 @@ const getObjects = (records, currentId) => {
 
 const update = (id, editor) => {
   const records = editor.store.allRecords();
-  const { currentShape, outputArrows, inputArrows } = getObjects(records, id);
+  let { currentShape, outputArrows, inputArrows } = getObjects(records, id);
   if (!currentShape) return;
   const { props, meta = {} } = currentShape;
   let code = meta.code;
@@ -135,6 +145,8 @@ const update = (id, editor) => {
   let newResult;
   let resultHasChanged = false;
   let lastArgUpdate = meta.lastArgUpdate;
+  let nextClick = meta.nextClick;
+  let click = meta.click;
 
   // Log red shapes
   let debug = false;
@@ -219,6 +231,17 @@ const update = (id, editor) => {
     }
   }
 
+  // Check if there's a click fired
+  const firstClick = !click && nextClick !== undefined;
+  const clickFired = !_.isEqual(click, nextClick) || firstClick;
+  if (clickFired) {
+    click = nextClick;
+  } else {
+    outputArrows = outputArrows.filter(
+      (arrow) => arrow.props.text !== "'click'"
+    );
+  }
+
   // Collect downstream changes
   let downstreamShapes = [];
   outputArrows.forEach((arrow) => {
@@ -229,7 +252,7 @@ const update = (id, editor) => {
     let { nextArgUpdate } = meta;
 
     // Get source value
-    let source = getValueFromShape(arrowText, currentShape, newResult);
+    let source = getValueFromShape(arrowText, currentShape, newResult, click);
 
     // Set to desintation
     let newProps = {};
@@ -237,19 +260,7 @@ const update = (id, editor) => {
       // Error
     } else if (isInQuotes(arrowText)) {
       // Prop
-      const propName = arrowText.slice(1, -1);
-      let value;
-      const propType = propTypes[propName];
-      if (propType === "string") {
-        value = source; // Allow all text to come in as a string
-      } else if (propType === "number") {
-        if (source !== "") {
-          value = Number(source);
-        }
-      } else {
-        value = castInput(source); // Catch all
-      }
-      newProps[propName] = value;
+      newProps = setNewProps(arrowText, source, newProps);
     } else if (endShape.props.geo === "rectangle") {
       // Arg
       nextArgUpdate = Date.now(); // Notify node to recompute
@@ -291,7 +302,8 @@ const update = (id, editor) => {
     resultHasChanged && newResult !== undefined ? { result: newResult } : {};
   const codeObject =
     codeHasChanged && newCode !== undefined ? { code: newCode } : {};
-  const newMeta = { ...codeObject, ...resultObject };
+  const clickObject = clickFired ? { click } : {};
+  const newMeta = { ...codeObject, ...resultObject, ...clickObject };
   let newCurrentShape;
   if (Object.keys(newMeta).length > 0) {
     newCurrentShape = { id, meta: newMeta };
@@ -307,6 +319,31 @@ const update = (id, editor) => {
   if (newShapes.length > 0) {
     editor.updateShapes(newShapes);
   }
+};
+
+const setNewProps = (arrowText, source, newProps) => {
+  // Prop
+  const propName = arrowText.slice(1, -1);
+  let value;
+  const propType = propTypes[propName];
+  if (propType === "string") {
+    value = source; // Allow all text to come in as a string
+  } else if (source === "") {
+    // Do nothing if its an empty string
+  } else if (propType === "number") {
+    value = Number(source);
+  } else if (propType === "boolean") {
+    value = Boolean(castInput(source)); //  Enable dynamic JS typing
+  } else if (propType === "object") {
+    value = castInput(source);
+  } else {
+    value = castInput(source); // Catch all
+  }
+  // newProps = setNestedProperty(newProps, propName, value);
+  if (value !== undefined) {
+    newProps[propName] = value;
+  }
+  return newProps;
 };
 
 export default update;
