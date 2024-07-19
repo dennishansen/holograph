@@ -46,3 +46,11 @@ body {
 .read-the-docs {
   color: #888;
 }
+
+/* TLraw overrides */
+
+.tlui-menu-zone {
+  margin-top: 8px;
+  margin-left: 8px;
+  border-radius: 11px;
+}

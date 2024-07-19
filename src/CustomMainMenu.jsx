@@ -8,9 +8,31 @@ import {
   ExportFileContentSubMenu,
   ExtrasGroup,
   PreferencesGroup,
+  TldrawUiButton,
 } from "tldraw";
+import useMediaQuery from "./useMediaQuery";
 
-const CustomMainMenu = ({ editor }) => {
+const Star = ({ style }) => (
+  <img
+    style={{
+      transform: "rotate(20deg)",
+      position: "absolute",
+      width: 20,
+      ...style,
+    }}
+    src="/star.svg"
+    alt="New updates!"
+  />
+);
+
+const CustomMainMenu = ({
+  editor,
+  showUpdate,
+  setShowUpdate,
+  latestUpdateTime,
+}) => {
+  const isMobile = useMediaQuery("(max-width: 414px)");
+
   const importJSON = (editor) => {
     // Open file selection dialog
     const input = document.createElement("input");
@@ -28,6 +50,23 @@ const CustomMainMenu = ({ editor }) => {
     input.click();
 
     // Close the menu
+  };
+
+  const whatsNew = () => {
+    fetch("/tutorial.json")
+      .then((response) => {
+        if (response.ok) return response.json();
+      })
+      .then((tutorial) => {
+        const seed = Date.now();
+        const id = "page:how-to" + seed;
+        editor.createPage({ name: "How to", id });
+        editor.setCurrentPage(id);
+        editor.putContentOntoCurrentPage(tutorial);
+        // Set local item that visited update
+        localStorage.setItem("lastUpdateSeen", latestUpdateTime);
+        setShowUpdate(false);
+      });
   };
 
   return (
@@ -72,8 +111,52 @@ const CustomMainMenu = ({ editor }) => {
             readonlyOk
             onSelect={() => window.open("https://x.com/dennizor")}
           />
+          {isMobile && (
+            <div style={{ backgroundColor: showUpdate ? "#FFE1E2" : "unset" }}>
+              <TldrawUiMenuItem
+                id="whats new"
+                label={showUpdate ? "New stuff!" : "How to"}
+                icon={<Star />}
+                readonlyOk
+                onSelect={whatsNew}
+                style={{
+                  backgroundColor: "rgb(237, 240, 242)",
+                }}
+              />
+            </div>
+          )}
         </TldrawUiMenuGroup>
       </DefaultMainMenu>
+      {!isMobile && (
+        <TldrawUiButton
+          type={"normal"}
+          title={"Whats new"}
+          style={{
+            backgroundColor: "rgb(237, 240, 242)",
+            position: "absolute",
+            top: 0,
+            right: showUpdate ? -89 : -71,
+          }}
+          onClick={whatsNew}
+        >
+          {showUpdate ? (
+            <>
+              {"New stuff!"}
+              <Star style={{ top: -2, right: -6 }} />
+            </>
+          ) : (
+            "How to"
+          )}
+        </TldrawUiButton>
+      )}
+      {showUpdate && isMobile && (
+        <Star
+          style={{
+            top: 0,
+            left: 20,
+          }}
+        />
+      )}
     </div>
   );
 };

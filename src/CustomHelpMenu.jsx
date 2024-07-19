@@ -11,7 +11,7 @@ const CustomHelpMenu = () => {
       <TldrawUiMenuGroup id="example">
         <TldrawUiMenuItem
           id="like"
-          label="Github + How to"
+          label="Github"
           icon="external-link"
           readonlyOk
           onSelect={() => {

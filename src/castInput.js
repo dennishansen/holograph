@@ -46,6 +46,10 @@ function castInput(input) {
   }
 
   // Default to string
+  if (input.length > 1 && input.startsWith('"') && input.endsWith('"')) {
+    // Remove quotes if they exist (TODO: Cleanup)
+    input = input.slice(1, -1);
+  }
   return input; // string
 }
 

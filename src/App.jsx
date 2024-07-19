@@ -10,32 +10,48 @@ import SharePanel from "./SharePanel";
 import { Analytics } from "@vercel/analytics/react";
 import update from "./update";
 
-const ignoredKeys = ["meta.result", "meta.code", "meta.nextClick"];
+const latestUpdateTime = 1721409313220;
+
+let mounted = false;
+
+const ignoredKeys = [
+  "meta.result",
+  "meta.code",
+  "meta.nextClick",
+  "meta.click",
+];
+
+const allKeysInArray = (obj, arr) => {
+  return Object.keys(obj).every((key) => arr.some((str) => key.includes(str)));
+};
 
 export default function StoreEventsExample() {
   const [editor, setEditor] = useState();
-
-  const getIsFirstVisit = () => {
-    if (!localStorage.getItem("visited")) {
-      localStorage.setItem("visited", "true");
-      return true;
-    } else {
-      return false;
-    }
-  };
+  const [showUpdate, setShowUpdate] = useState(false);
+  // Last update: lazy arrows
 
   const setAppToState = useCallback((editor) => {
     setEditor(editor);
   }, []);
 
-  // Load tutorial to current page if its empty and its the first load
+  // Load logic
   useEffect(() => {
     if (!editor) return;
+    if (mounted) return;
+    mounted = true; // prevent rerunning and screwing this up
+
     const allRecords = editor.store.allRecords();
+
+    const lastVisit = localStorage.getItem("lastVisit");
+    const backwardsCompatVisited = localStorage.getItem("visited");
+    const isFirstVisit = lastVisit === null && backwardsCompatVisited !== true; // backwards compatibility
+
     const canvasRecords = allRecords.filter(
       ({ id }) => id.startsWith("shape") || id.startsWith("asset")
     );
-    if (canvasRecords.length === 0 && getIsFirstVisit()) {
+    // Load tutorial to current page if its empty and its the first load
+    const showTutorial = canvasRecords.length === 0 && isFirstVisit;
+    if (showTutorial) {
       fetch("/tutorial.json")
         .then((response) => {
           if (response.ok) return response.json();
@@ -46,6 +62,17 @@ export default function StoreEventsExample() {
         });
       // .catch((error) => console.error(error));
     }
+
+    // Set last visit to now
+    const visitTime = Date.now();
+    localStorage.setItem("lastVisit", visitTime);
+
+    // Show an update if the last update seen is older than the latest update
+    let lastUpdateSeen = localStorage.getItem("lastUpdateSeen");
+    if (showTutorial) {
+      lastUpdateSeen = visitTime;
+    }
+    setShowUpdate(!showTutorial && lastUpdateSeen < latestUpdateTime);
   }, [editor]);
 
   useEffect(() => {
@@ -64,9 +91,8 @@ export default function StoreEventsExample() {
       for (const [from, to] of Object.values(change.changes.updated)) {
         if (from.id.startsWith("shape") && to.id.startsWith("shape")) {
           let diff = deepDiff(from, to);
-          // console.log("diff: ", diff);
-
-          if (Object.keys(diff).every((key) => ignoredKeys.includes(key))) {
+          let ignore = allKeysInArray(diff, ignoredKeys);
+          if (ignore) {
             // Ignore changes that should not trigger a re-propagation
           } else if (to.typeName === "shape") {
             if (to.type === "arrow") {
@@ -113,17 +139,27 @@ export default function StoreEventsExample() {
     if (!editor) return;
 
     const handleEvent = (data) => {
-      // console.log("name", data.name);
       if (data.name === "pointer_down") {
         const point = data.point;
         const pagePoint = editor.screenToPage(point);
-        const shape = editor.getShapeAtPoint(pagePoint, { hitInside: true });
+        const shape = editor.getShapeAtPoint(pagePoint, {
+          hitInside: true,
+          // hitLocked: true, // Can't update locked shapes
+        });
         if (shape !== undefined) {
-          editor.updateShape({
-            id: shape.id,
-            meta: { nextClick: { ...pagePoint, timeStamp: Date.now() } },
-          });
-          update(shape.id, editor);
+          const dashed =
+            editor.store
+              .allRecords()
+              .find((record) => record?.props?.start?.boundShapeId === shape.id)
+              ?.props?.dash === "dashed";
+
+          if (!dashed) {
+            editor.updateShape({
+              id: shape.id,
+              meta: { nextClick: { ...pagePoint, timeStamp: Date.now() } },
+            });
+            update(shape.id, editor);
+          }
         }
       } else if (data.name === "pointer_move") {
         // Hover events, etc
@@ -135,7 +171,15 @@ export default function StoreEventsExample() {
 
   const components = {
     HelpMenu: CustomHelpMenu,
-    MainMenu: (...props) => <CustomMainMenu {...props} editor={editor} />,
+    MainMenu: (...props) => (
+      <CustomMainMenu
+        {...props}
+        editor={editor}
+        showUpdate={showUpdate}
+        latestUpdateTime={latestUpdateTime}
+        setShowUpdate={setShowUpdate}
+      />
+    ),
     SharePanel,
   };
 

@@ -8,21 +8,13 @@ import {
 // import { get } from "@vercel/edge-config";
 
 const SharePanel = () => {
-  // const onClick = async () => {
-  //   const greeting = await get("greeting");
-  //   console.log(greeting);
-  //   // NextResponse.json requires at least Next v13.1 or
-  //   // enabling experimental.allowMiddlewareResponseBody in next.config.js
-  //   // return NextResponse.json(greeting);
-  // };
-
   return (
     <div style={{ display: "flex", margin: "8px 8px 0 0" }}>
       <TldrawUiPopover id="explore">
         <TldrawUiPopoverTrigger>
           <TldrawUiButton
             type={"normal"}
-            title={"title!"}
+            title={"explore"}
             style={{ backgroundColor: "rgb(237, 240, 242)" }}
           >
             Explore
@@ -30,7 +22,13 @@ const SharePanel = () => {
         </TldrawUiPopoverTrigger>
         <TldrawUiPopoverContent side="bottom" align="end" sideOffset={6}>
           <div style={{ padding: 12, paddingTop: 2 }}>
-            <h2 style={{ textAlign: "left", marginBottom: 0 }}>
+            <h2
+              style={{
+                textAlign: "left",
+                marginBottom: 0,
+                color: "rgb(46, 46, 46)",
+              }}
+            >
               Explore creations
             </h2>
             <p
@@ -39,6 +37,7 @@ const SharePanel = () => {
                 maxWidth: 240,
                 marginTop: 6,
                 textAlign: "left",
+                color: "rgb(46, 46, 46)",
               }}
             >
               Dowload and import some cool creations from our public google
@@ -77,7 +76,13 @@ const SharePanel = () => {
         </TldrawUiPopoverTrigger>
         <TldrawUiPopoverContent side="bottom" align="end" sideOffset={6}>
           <div style={{ padding: 12, paddingTop: 2 }}>
-            <h2 style={{ textAlign: "left", marginBottom: 0 }}>
+            <h2
+              style={{
+                textAlign: "left",
+                marginBottom: 0,
+                color: "rgb(46, 46, 46)",
+              }}
+            >
               Publish your creation
             </h2>
             <p
@@ -86,6 +91,7 @@ const SharePanel = () => {
                 maxWidth: 240,
                 marginTop: 6,
                 textAlign: "left",
+                color: "rgb(46, 46, 46)",
               }}
             >
               Get your creation into the public google drive by tweeting it at

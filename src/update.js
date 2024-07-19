@@ -214,9 +214,6 @@ const update = (id, editor) => {
         let newResultString = JSON.stringify(truncateDecimals(newResultRaw));
         if (typeof newResultString === "string") {
           // Valid result
-          if (isInQuotes(newResultString)) {
-            newResultString = newResultString.slice(1, -1);
-          }
           newResult = newResultString;
           log("newResult", newResult);
         }
@@ -237,6 +234,7 @@ const update = (id, editor) => {
   if (clickFired) {
     click = nextClick;
   } else {
+    // Clicks should only propagate when clicked
     outputArrows = outputArrows.filter(
       (arrow) => arrow.props.text !== "'click'"
     );
@@ -245,6 +243,7 @@ const update = (id, editor) => {
   // Collect downstream changes
   let downstreamShapes = [];
   outputArrows.forEach((arrow) => {
+    if (arrow.props.dash === "dashed") return;
     const { text: arrowText, end } = arrow.props;
     const endShape = records.find(({ id }) => id === end.boundShapeId);
     if (!endShape) return;
@@ -269,6 +268,10 @@ const update = (id, editor) => {
       (!arrowText || isInSingleQuotes(arrowText))
     ) {
       // Text
+      if (isInQuotes(source)) {
+        // Strip quotes when appearing as text
+        source = source.slice(1, -1);
+      }
       newProps.text = source;
     }
 
