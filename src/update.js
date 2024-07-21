@@ -133,7 +133,7 @@ const getObjects = (records, currentId) => {
   return { currentShape, outputArrows, inputArrows };
 };
 
-const update = (id, editor) => {
+const update = async (id, editor) => {
   const records = editor.store.allRecords();
   let { currentShape, outputArrows, inputArrows } = getObjects(records, id);
   if (!currentShape) return;
@@ -201,8 +201,13 @@ const update = (id, editor) => {
         log("argNames", argNames);
         log("argValues", argValues);
         log("functionBody", functionBody);
-        const func = new Function(argNames, functionBody);
-        newResultRaw = func(...argValues);
+        const AsyncFunction = Object.getPrototypeOf(
+          async function () {}
+        ).constructor;
+        const func = new AsyncFunction(argNames, functionBody);
+        argNames.push("fetch");
+        argValues.push(fetch);
+        newResultRaw = await func(...argValues);
       } catch (error) {
         // log(error);
       }
@@ -246,56 +251,58 @@ const update = (id, editor) => {
     const { text: arrowText, end, dash } = arrow.props;
     const endShape = records.find(({ id }) => id === end.boundShapeId);
     if (dash !== "dashed" && endShape) {
-    const { meta = {} } = endShape;
-    let { nextArgUpdate } = meta;
+      const { meta = {} } = endShape;
+      let { nextArgUpdate } = meta;
 
-    // Get source value
-    let source = getValueFromShape(arrowText, currentShape, newResult, click);
+      // Get source value
+      let source = getValueFromShape(arrowText, currentShape, newResult, click);
 
-    // Set to desintation
-    let newProps = {};
-    if (source === undefined || source === errorString) {
-      // Error
-    } else if (isInQuotes(arrowText)) {
-      // Prop
-      newProps = setNewProps(arrowText, source, newProps);
-    } else if (endShape.props.geo === "rectangle") {
-      // Arg
-      nextArgUpdate = Date.now(); // Notify node to recompute
-    } else if (
-      source !== undefined &&
-      (!arrowText || isInSingleQuotes(arrowText))
-    ) {
-      // Text
-      if (isInQuotes(source)) {
-        // Strip quotes when appearing as text
-        source = source.slice(1, -1);
+      // Set to desintation
+      let newProps = {};
+      if (source === undefined || source === errorString) {
+        // Error
+      } else if (isInQuotes(arrowText)) {
+        // Prop
+        newProps = setNewProps(arrowText, source, newProps);
+      } else if (endShape.props.geo === "rectangle") {
+        // Arg
+        nextArgUpdate = Date.now(); // Notify node to recompute
+      } else if (
+        source !== undefined &&
+        (!arrowText || isInSingleQuotes(arrowText))
+      ) {
+        // Text
+        if (isInQuotes(source)) {
+          // Strip quotes when appearing as text
+          source = source.slice(1, -1);
+        }
+        newProps.text = source;
       }
-      newProps.text = source;
-    }
 
-    log("source", source);
-    log("newProps", newProps);
-    log("nextArgUpdate", nextArgUpdate);
+      log("source", source);
+      log("newProps", newProps);
+      log("nextArgUpdate", nextArgUpdate);
 
-    const { baseProps, customProps } = splitProps(newProps);
+      const { baseProps, customProps } = splitProps(newProps);
 
-    const nextArgUpdateObject = nextArgUpdate ? { nextArgUpdate } : {};
-    const newMeta = { ...nextArgUpdateObject };
-    const metaObject = Object.keys(newMeta).length > 0 ? { meta: newMeta } : {};
-    const propsObject =
-      Object.keys(customProps).length > 0 ? { props: customProps } : {};
+      const nextArgUpdateObject = nextArgUpdate ? { nextArgUpdate } : {};
+      const newMeta = { ...nextArgUpdateObject };
+      const metaObject =
+        Object.keys(newMeta).length > 0 ? { meta: newMeta } : {};
+      const propsObject =
+        Object.keys(customProps).length > 0 ? { props: customProps } : {};
 
-    let numberBaseProps = Object.keys(baseProps).length;
-    let numberProps = Object.keys(propsObject).length;
-    let numberMeta = Object.keys(metaObject).length;
-    if (numberBaseProps + numberProps + numberMeta > 0) {
-      downstreamShapes.push({
-        id: endShape.id,
-        ...baseProps,
-        ...propsObject,
-        ...metaObject,
-      });
+      let numberBaseProps = Object.keys(baseProps).length;
+      let numberProps = Object.keys(propsObject).length;
+      let numberMeta = Object.keys(metaObject).length;
+      if (numberBaseProps + numberProps + numberMeta > 0) {
+        downstreamShapes.push({
+          id: endShape.id,
+          ...baseProps,
+          ...propsObject,
+          ...metaObject,
+        });
+      }
     }
   });
 
