@@ -133,7 +133,7 @@ const getObjects = (records, currentId) => {
   return { currentShape, outputArrows, inputArrows };
 };
 
-const update = async (id, editor) => {
+const update = (id, editor) => {
   const records = editor.store.allRecords();
   let { currentShape, outputArrows, inputArrows } = getObjects(records, id);
   if (!currentShape) return;
@@ -201,13 +201,15 @@ const update = async (id, editor) => {
         log("argNames", argNames);
         log("argValues", argValues);
         log("functionBody", functionBody);
-        const AsyncFunction = Object.getPrototypeOf(
-          async function () {}
-        ).constructor;
-        const func = new AsyncFunction(argNames, functionBody);
-        argNames.push("fetch");
-        argValues.push(fetch);
-        newResultRaw = await func(...argValues);
+        // const AsyncFunction = Object.getPrototypeOf(
+        //   async function () {}
+        // ).constructor;
+        // const func = new AsyncFunction(argNames, functionBody);
+        // argNames.push("fetch");
+        // argValues.push(fetch);
+        // newResultRaw = await func(...argValues);
+        const func = new Function(argNames, functionBody);
+        newResultRaw = func(...argValues);
       } catch (error) {
         // log(error);
       }
