@@ -243,10 +243,9 @@ const update = (id, editor) => {
   // Collect downstream changes
   let downstreamShapes = [];
   outputArrows.forEach((arrow) => {
-    if (arrow.props.dash === "dashed") return;
-    const { text: arrowText, end } = arrow.props;
+    const { text: arrowText, end, dash } = arrow.props;
     const endShape = records.find(({ id }) => id === end.boundShapeId);
-    if (!endShape) return;
+    if (dash !== "dashed" && endShape) {
     const { meta = {} } = endShape;
     let { nextArgUpdate } = meta;
 
