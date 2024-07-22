@@ -4,8 +4,9 @@ import "./App.css";
 import { useCallback, useEffect, useState } from "react";
 import { Tldraw } from "tldraw";
 import deepDiff from "./deepDiff";
-import CustomHelpMenu from "./CustomHelpMenu";
-import CustomMainMenu from "./CustomMainMenu";
+import Toolbar from "./Toolbar";
+import HelpMenu from "./HelpMenu";
+import MainMenu from "./MainMenu";
 import SharePanel from "./SharePanel";
 import { Analytics } from "@vercel/analytics/react";
 import update from "./update";
@@ -170,9 +171,9 @@ export default function StoreEventsExample() {
   }, [editor]);
 
   const components = {
-    HelpMenu: CustomHelpMenu,
+    HelpMenu,
     MainMenu: (...props) => (
-      <CustomMainMenu
+      <MainMenu
         {...props}
         editor={editor}
         showUpdate={showUpdate}
@@ -181,6 +182,7 @@ export default function StoreEventsExample() {
       />
     ),
     SharePanel,
+    Toolbar,
   };
 
   return (
