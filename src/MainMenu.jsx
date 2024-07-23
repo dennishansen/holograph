@@ -5,10 +5,15 @@ import {
   TldrawUiMenuItem,
   EditSubmenu,
   ViewSubmenu,
-  ExportFileContentSubMenu,
+  // ExportFileContentSubMenu,
+  ToggleTransparentBgMenuItem,
+  TldrawUiMenuSubmenu,
   ExtrasGroup,
   PreferencesGroup,
   TldrawUiButton,
+  useActions,
+  useExportAs,
+  useUiEvents,
 } from "tldraw";
 import useMediaQuery from "./useMediaQuery";
 
@@ -31,9 +36,13 @@ const CustomMainMenu = ({
   setShowUpdate,
   latestUpdateTime,
 }) => {
+  const actions = useActions();
+  const exportAs = useExportAs();
+  const trackEvent = useUiEvents();
+
   const isMobile = useMediaQuery("(max-width: 414px)");
 
-  const importJSON = (editor) => {
+  const openFile = () => {
     // Open file selection dialog
     const input = document.createElement("input");
     input.type = "file";
@@ -42,14 +51,31 @@ const CustomMainMenu = ({
       const file = event.target.files[0];
       const reader = new FileReader();
       reader.onload = (event) => {
+        const hasShapesOnPage =
+          Array.from(editor.getCurrentPageShapeIds().values()).length > 0;
+        let name = file.name.replace(".json", "");
+        if (hasShapesOnPage) {
+          const seed = Date.now();
+          const id = "page:" + seed;
+          editor.createPage({ name, id });
+          editor.setCurrentPage(id);
+        } else {
+          editor.updatePage({ id: editor.getCurrentPageId(), name });
+        }
         const jsonData = JSON.parse(event.target.result);
         editor.putContentOntoCurrentPage(jsonData, { select: true });
       };
       reader.readAsText(file);
     };
     input.click();
+  };
 
-    // Close the menu
+  const saveFile = () => {
+    let ids = Array.from(editor.getCurrentPageShapeIds().values());
+    if (ids.length === 0) return;
+    let name = editor.getCurrentPage()?.name || "Untitled";
+    trackEvent("export-as", { format: "json", source: "user" });
+    exportAs(ids, "json", name);
   };
 
   const whatsNew = () => {
@@ -72,23 +98,39 @@ const CustomMainMenu = ({
   return (
     <div>
       <DefaultMainMenu>
-        <EditSubmenu />
-        <ViewSubmenu />
-        <ExportFileContentSubMenu />
-        <div
-          style={{
-            height: "1px",
-            margin: "4px 0",
-            backgroundColor: "var(--color-divider)",
-          }}
-        ></div>
-        <TldrawUiMenuItem
-          id="import"
-          label="Import JSON"
-          icon="external-link"
-          readonlyOk
-          onSelect={() => importJSON(editor)}
-        />
+        <TldrawUiMenuGroup id="file">
+          <TldrawUiMenuItem
+            id="Open file"
+            label="Open file"
+            icon="external-link"
+            readonlyOk
+            onSelect={openFile}
+          />
+          <TldrawUiMenuItem
+            id="Save file"
+            label="Save file"
+            icon="external-link"
+            readonlyOk
+            onSelect={saveFile}
+          />
+        </TldrawUiMenuGroup>
+        <TldrawUiMenuGroup id="file">
+          <EditSubmenu />
+          <ViewSubmenu />
+          <TldrawUiMenuSubmenu
+            id="export-all-as"
+            label="context-menu.export-all-as"
+            size="small"
+          >
+            <TldrawUiMenuGroup id="export-all-as-group">
+              <TldrawUiMenuItem {...actions["export-all-as-svg"]} />
+              <TldrawUiMenuItem {...actions["export-all-as-png"]} />
+            </TldrawUiMenuGroup>
+            <TldrawUiMenuGroup id="export-all-as-bg">
+              <ToggleTransparentBgMenuItem />
+            </TldrawUiMenuGroup>
+          </TldrawUiMenuSubmenu>
+        </TldrawUiMenuGroup>
         <ExtrasGroup />
         <PreferencesGroup />
         <TldrawUiMenuGroup id="other">

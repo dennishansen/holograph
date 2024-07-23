@@ -121,7 +121,7 @@ export default function StoreEventsExample() {
       // Removed
       for (const record of Object.values(change.changes.removed)) {
         if (record.typeName === "shape") {
-          // console.log(`deleted shape: `, record);
+          import.meta.env.DEV && console.log(`deleted shape: `, record);
         }
       }
     };

@@ -150,7 +150,7 @@ const update = (id, editor) => {
 
   // Log red shapes
   let debug = false;
-  // if (currentShape?.props?.color === "red") debug = true;
+  if (currentShape?.props?.color === "red" && import.meta.env.DEV) debug = true;
   const log = (...args) => debug && console.log(...args);
   log("-------------------------------");
   log("update ", currentShape?.props?.text, currentShape?.props?.geo, id);
