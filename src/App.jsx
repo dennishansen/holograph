@@ -101,12 +101,11 @@ export default function StoreEventsExample() {
               let endId = to.props.end.boundShapeId;
               let newStart = diff["props.start.boundShapeId"] && endId;
               let newEnd = diff["props.end.boundShapeId"] && startId;
-              if (newStart || newEnd) {
-                // Newly connected arrow
+              let newlySolid = diff["props.dash"] && to.props.dash === "draw";
+              if (newStart || newEnd || newlySolid) {
                 update(startId, editor);
               }
               if (diff["props.text"] && startId && endId) {
-                // Updated arrow text
                 update(startId, editor);
               }
             } else {
@@ -148,20 +147,19 @@ export default function StoreEventsExample() {
           // hitLocked: true, // Can't update locked shapes
         });
         if (shape !== undefined) {
-          const dashed =
-            editor.store
-              .allRecords()
-              .find((record) => record?.props?.start?.boundShapeId === shape.id)
-              ?.props?.dash === "dashed";
+          // const dashed =
+          // editor.store
+          //   .allRecords()
+          //   .find((record) => record?.props?.start?.boundShapeId === shape.id)
+          // ?.props?.dash === "dashed";
 
-          if (!dashed) {
+          // console.log("Setting next click on shape", shape.id);
             editor.updateShape({
               id: shape.id,
               meta: { nextClick: { ...pagePoint, timeStamp: Date.now() } },
             });
             update(shape.id, editor);
           }
-        }
       } else if (data.name === "pointer_move") {
         // Hover events, etc
       }
