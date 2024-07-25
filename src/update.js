@@ -15,6 +15,9 @@ const basePropsKeys = [
   "isLocked",
 ];
 
+const wait = async (arg, delay) =>
+  new Promise((resolve) => setTimeout(() => resolve(arg), delay));
+
 const propTypes = {
   x: "number",
   y: "number",
@@ -133,7 +136,7 @@ const getObjects = (records, currentId) => {
   return { currentShape, outputArrows, inputArrows };
 };
 
-const update = (id, editor) => {
+const update = async (id, editor) => {
   const records = editor.store.allRecords();
   let { currentShape, outputArrows, inputArrows } = getObjects(records, id);
   if (!currentShape) return;
@@ -194,22 +197,26 @@ const update = (id, editor) => {
         argValues.push(castInput(source));
       });
       let functionBody = code.includes("return") ? code : `return ${code}`;
-
       // Run function
       let newResultRaw;
       try {
         log("argNames", argNames);
         log("argValues", argValues);
         log("functionBody", functionBody);
-        // const AsyncFunction = Object.getPrototypeOf(
-        //   async function () {}
-        // ).constructor;
-        // const func = new AsyncFunction(argNames, functionBody);
-        // argNames.push("fetch");
-        // argValues.push(fetch);
-        // newResultRaw = await func(...argValues);
-        const func = new Function(argNames, functionBody);
-        newResultRaw = func(...argValues);
+        argNames.push("fetch");
+        argValues.push(fetch);
+        argNames.push("wait");
+        argValues.push(wait);
+        // argNames.push("editor");
+        // argValues.push(editor);
+        // argNames.push("currentShape");
+        // argValues.push(currentShape);
+        const AsyncFunction = Object.getPrototypeOf(
+          async function () {}
+        ).constructor;
+        const func = new AsyncFunction(argNames, functionBody);
+        newResultRaw = await func(...argValues);
+        log("newResultRaw", newResultRaw);
       } catch (error) {
         // log(error);
       }

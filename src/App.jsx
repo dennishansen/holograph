@@ -147,19 +147,12 @@ export default function StoreEventsExample() {
           // hitLocked: true, // Can't update locked shapes
         });
         if (shape !== undefined) {
-          // const dashed =
-          // editor.store
-          //   .allRecords()
-          //   .find((record) => record?.props?.start?.boundShapeId === shape.id)
-          // ?.props?.dash === "dashed";
-
-          // console.log("Setting next click on shape", shape.id);
-            editor.updateShape({
-              id: shape.id,
-              meta: { nextClick: { ...pagePoint, timeStamp: Date.now() } },
-            });
-            update(shape.id, editor);
-          }
+          editor.updateShape({
+            id: shape.id,
+            meta: { nextClick: { ...pagePoint, timeStamp: Date.now() } },
+          });
+          update(shape.id, editor);
+        }
       } else if (data.name === "pointer_move") {
         // Hover events, etc
       }
