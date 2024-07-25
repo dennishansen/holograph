@@ -11,7 +11,7 @@ import SharePanel from "./SharePanel";
 import { Analytics } from "@vercel/analytics/react";
 import update from "./update";
 
-const latestUpdateTime = 1721409313220;
+const latestUpdateTime = 1721928965296;
 
 let mounted = false;
 
