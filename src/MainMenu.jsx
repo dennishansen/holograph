@@ -125,6 +125,7 @@ const CustomMainMenu = ({
             <TldrawUiMenuGroup id="export-all-as-group">
               <TldrawUiMenuItem {...actions["export-all-as-svg"]} />
               <TldrawUiMenuItem {...actions["export-all-as-png"]} />
+              <TldrawUiMenuItem {...actions["export-all-as-json"]} />
             </TldrawUiMenuGroup>
             <TldrawUiMenuGroup id="export-all-as-bg">
               <ToggleTransparentBgMenuItem />
