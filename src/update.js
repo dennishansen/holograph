@@ -180,21 +180,23 @@ const update = async (id, editor) => {
       inputArrows.forEach((arrow) => {
         const { text: arrowText, start } = arrow.props;
         const shape = records.find(({ id }) => id === start.boundShapeId);
-        if (!shape) return;
-        const { meta = {} } = shape;
-        const source = getValueFromShape(arrowText, shape, meta.result);
-        let name;
-        if (isInSingleQuotes(arrowText)) {
-          // Allow props to come in as arguments
-          name = arrowText.slice(1, -1);
-        } else if (arrowText !== "") {
-          name = arrowText;
-        } else {
-          // Give anonymous args a unique name
-          name = getUniqueName(argNames);
+        const isSettingProp = isInQuotes(arrowText);
+        if (shape && !isSettingProp) {
+          const { meta = {} } = shape;
+          const source = getValueFromShape(arrowText, shape, meta.result);
+          let name;
+          if (isInSingleQuotes(arrowText)) {
+            // Allow props to come in as arguments
+            name = arrowText.slice(1, -1);
+          } else if (arrowText !== "") {
+            name = arrowText;
+          } else {
+            // Give anonymous args a unique name
+            name = getUniqueName(argNames);
+          }
+          argNames.push(name);
+          argValues.push(castInput(source));
         }
-        argNames.push(name);
-        argValues.push(castInput(source));
       });
       let functionBody = code.includes("return") ? code : `return ${code}`;
       // Run function
@@ -216,9 +218,8 @@ const update = async (id, editor) => {
         ).constructor;
         const func = new AsyncFunction(argNames, functionBody);
         newResultRaw = await func(...argValues);
-        log("newResultRaw", newResultRaw);
       } catch (error) {
-        // log(error);
+        log("error", error);
       }
 
       log("newResultRaw", newResultRaw);
