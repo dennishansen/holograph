@@ -10,6 +10,7 @@ import MainMenu from "./MainMenu";
 import SharePanel from "./SharePanel";
 import { Analytics } from "@vercel/analytics/react";
 import update from "./update";
+import overrides from "./overrides";
 
 const latestUpdateTime = 1721928965296;
 
@@ -20,6 +21,7 @@ const ignoredKeys = [
   "meta.code",
   "meta.nextClick",
   "meta.click",
+  "meta.errorColorCache",
 ];
 
 const allKeysInArray = (obj, arr) => {
@@ -93,6 +95,11 @@ export default function StoreEventsExample() {
         if (from.id.startsWith("shape") && to.id.startsWith("shape")) {
           let diff = deepDiff(from, to);
           let ignore = allKeysInArray(diff, ignoredKeys);
+          // // console.log("metalast: ", diff["meta.lastUpdated"]);
+          // if (diff["meta.lastUpdated"]) {
+          //   ignore = true;
+          // }
+          // console.log("Ignoring change", ignore);
           if (ignore) {
             // Ignore changes that should not trigger a re-propagation
           } else if (to.typeName === "shape") {
@@ -177,11 +184,12 @@ export default function StoreEventsExample() {
   };
 
   return (
-    <div style={{ display: "flex", width: "100%" }}>
+    <div style={{ position: "absolute", inset: 0 }}>
       <Tldraw
         onMount={setAppToState}
         persistenceKey="holograph-1"
         components={components}
+        overrides={overrides}
       />
       <Analytics />
     </div>

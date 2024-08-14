@@ -1,5 +1,10 @@
 function castInput(input) {
-  // Try to parse input as JSON
+  // undefined
+  if (input === undefined) {
+    return undefined;
+  }
+
+  // Try to parse input as JSON)
   try {
     const parsedInput = JSON.parse(input);
 

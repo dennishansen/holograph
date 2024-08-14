@@ -15,8 +15,9 @@ const basePropsKeys = [
   "isLocked",
 ];
 
-const wait = async (arg, delay) =>
-  new Promise((resolve) => setTimeout(() => resolve(arg), delay));
+const wait = async (arg, delay) => {
+  return new Promise((resolve) => setTimeout(() => resolve(arg), delay));
+};
 
 const propTypes = {
   x: "number",
@@ -46,16 +47,17 @@ const propTypes = {
   points: "object",
 };
 
-const errorString = "invalid-code-kSfd73";
-
 const getValue = (obj, path) => {
   return path.split(".").reduce((acc, key) => acc && acc[key], obj);
 };
 
-const isInQuotes = (str) =>
-  str.length > 1 && str.startsWith('"') && str.endsWith('"');
-const isInSingleQuotes = (str) =>
-  str.length > 1 && str.startsWith("'") && str.endsWith("'");
+const isInQuotes = (str) => {
+  return str.length > 1 && str.startsWith('"') && str.endsWith('"');
+};
+
+const isInSingleQuotes = (str) => {
+  return str.length > 1 && str.startsWith("'") && str.endsWith("'");
+};
 
 const truncateDecimals = (value) => {
   if (typeof value === "number") {
@@ -112,34 +114,51 @@ const splitProps = (newProps) => {
   return { baseProps, customProps };
 };
 
-const getObjects = (records, currentId) => {
-  let inputArrows = [];
-  let outputArrows = [];
-  let currentShape;
-  records.forEach((record) => {
-    const { id, type, typeName } = record;
-    if (typeName === "shape") {
-      if (id === currentId) {
-        currentShape = record;
-      }
-      if (type === "arrow") {
-        if (currentId === record.props.end.boundShapeId) {
-          inputArrows.push(record);
-        }
-        if (currentId === record.props.start.boundShapeId) {
-          outputArrows.push(record);
-        }
-      }
+const setNewProps = (arrowText, source, newProps) => {
+  // Prop
+  const propName = arrowText.slice(1, -1);
+  let value;
+  const propType = propTypes[propName];
+  if (propType === "string") {
+    if (source.length > 1 && source.startsWith('"') && source.endsWith('"')) {
+      // Remove quotes if they exist (TODO: Cleanup)
+      source = source.slice(1, -1);
     }
-  });
-
-  return { currentShape, outputArrows, inputArrows };
+    value = source; // Allow all text to come in as a string
+  } else if (source === "") {
+    // Do nothing if its an empty string
+  } else if (propType === "number") {
+    value = Number(source);
+  } else if (propType === "boolean") {
+    value = Boolean(castInput(source)); //  Enable dynamic JS typing
+  } else if (propType === "object") {
+    value = castInput(source);
+  } else {
+    value = castInput(source); // Catch all
+  }
+  // newProps = setNestedProperty(newProps, propName, value);
+  if (value !== undefined) {
+    newProps[propName] = value;
+  }
+  return newProps;
 };
 
 const update = async (id, editor) => {
-  const records = editor.store.allRecords();
-  let { currentShape, outputArrows, inputArrows } = getObjects(records, id);
+  const currentShape = editor.getShape(id);
+
   if (!currentShape) return;
+
+  const arrows = editor.getArrowsBoundTo(id);
+  let inputArrows = [];
+  let outputArrows = [];
+  arrows.forEach(({ arrowId, handleId }) => {
+    if (handleId === "start") {
+      outputArrows.push(editor.getShape(arrowId));
+    } else {
+      inputArrows.push(editor.getShape(arrowId));
+    }
+  });
+
   const { props, meta = {} } = currentShape;
   let code = meta.code;
   let newCode;
@@ -150,10 +169,15 @@ const update = async (id, editor) => {
   let lastArgUpdate = meta.lastArgUpdate;
   let nextClick = meta.nextClick;
   let click = meta.click;
+  let errorColorCache = meta.errorColorCache || "none";
+  let nextErrorColorCache;
+  let errorColorCacheHasChanged = false;
+  let nextColor;
 
   // Log red shapes
   let debug = false;
-  if (currentShape?.props?.color === "red" && import.meta.env.DEV) debug = true;
+  // if (currentShape?.props?.fill === "pattern" && import.meta.env.DEV)
+  //   debug = true;
   const log = (...args) => debug && console.log(...args);
   log("-------------------------------");
   log("update ", currentShape?.props?.text, currentShape?.props?.geo, id);
@@ -161,6 +185,7 @@ const update = async (id, editor) => {
   // Try to rerun propagator function if its a rectangle
   if (props?.geo === "rectangle") {
     const nextArgUpdate = meta.nextArgUpdate;
+    // TODO: THis is always true i think
     const argsHaveChanged = nextArgUpdate !== lastArgUpdate;
     const neverRan = !("result" in meta);
 
@@ -168,6 +193,7 @@ const update = async (id, editor) => {
     newCode = props.text;
     codeHasChanged = code !== newCode;
     code = newCode;
+    let error;
 
     // Rerun function if args have changed or if its never ran
     if (argsHaveChanged || codeHasChanged || neverRan) {
@@ -179,7 +205,7 @@ const update = async (id, editor) => {
       let argValues = [];
       inputArrows.forEach((arrow) => {
         const { text: arrowText, start } = arrow.props;
-        const shape = records.find(({ id }) => id === start.boundShapeId);
+        const shape = editor.getShape(start.boundShapeId);
         const isSettingProp = isInQuotes(arrowText);
         if (shape && !isSettingProp) {
           const { meta = {} } = shape;
@@ -201,6 +227,7 @@ const update = async (id, editor) => {
       let functionBody = code.includes("return") ? code : `return ${code}`;
       // Run function
       let newResultRaw;
+
       try {
         log("argNames", argNames);
         log("argValues", argValues);
@@ -218,7 +245,8 @@ const update = async (id, editor) => {
         ).constructor;
         const func = new AsyncFunction(argNames, functionBody);
         newResultRaw = await func(...argValues);
-      } catch (error) {
+      } catch (newError) {
+        error = newError;
         log("error", error);
       }
 
@@ -232,11 +260,30 @@ const update = async (id, editor) => {
           newResult = newResultString;
           log("newResult", newResult);
         }
-      } else {
-        // Invalid result
-        newResult = errorString;
       }
       resultHasChanged = result !== newResult;
+
+      // Handle any function errors
+      if (error) {
+        log("the error is: ", error);
+        // Set error if it isn't already set
+        if (errorColorCache === "none") {
+          nextColor = "red";
+          nextErrorColorCache = props.color;
+        }
+      } else {
+        // Succeeded. Set color if there was an error last run
+        if (errorColorCache !== "none") {
+          // console.log("errorColorCache", errorColorCache);
+          nextColor = errorColorCache;
+          nextErrorColorCache = "none";
+        }
+      }
+
+      // Detect if color cache has changed
+      if (nextErrorColorCache !== errorColorCache) {
+        errorColorCacheHasChanged = true;
+      }
     } else {
       // Otherwise send through old result
       newResult = result;
@@ -259,23 +306,24 @@ const update = async (id, editor) => {
   let downstreamShapes = [];
   outputArrows.forEach((arrow) => {
     const { text: arrowText, end, dash } = arrow.props;
-    const endShape = records.find(({ id }) => id === end.boundShapeId);
+    const endShape = editor.getShape(end.boundShapeId);
     if (dash !== "dashed" && endShape) {
-      const { meta = {} } = endShape;
-      let { nextArgUpdate } = meta;
+      // let { nextArgUpdate } = meta;
+      let nextArgUpdate;
 
       // Get source value
       let source = getValueFromShape(arrowText, currentShape, newResult, click);
 
       // Set to desintation
       let newProps = {};
-      if (source === undefined || source === errorString) {
+      if (source === undefined) {
         // Error
       } else if (isInQuotes(arrowText)) {
         // Prop
         newProps = setNewProps(arrowText, source, newProps);
       } else if (endShape.props.geo === "rectangle") {
         // Arg
+        log("nextArgUpdate getting updated");
         nextArgUpdate = Date.now(); // Notify node to recompute
       } else if (
         source !== undefined &&
@@ -296,9 +344,13 @@ const update = async (id, editor) => {
       const { baseProps, customProps } = splitProps(newProps);
 
       const nextArgUpdateObject = nextArgUpdate ? { nextArgUpdate } : {};
-      const newMeta = { ...nextArgUpdateObject };
+      const newMeta = {
+        ...nextArgUpdateObject,
+        // Tell tldraw handler not to fire PERFORMANCE RELEASE
+        // lastUpdated: Date.now(),
+      };
       const metaObject =
-        Object.keys(newMeta).length > 0 ? { meta: newMeta } : {};
+        Object.keys(newMeta).length > 0 ? { meta: newMeta } : {}; // TODO: delete
       const propsObject =
         Object.keys(customProps).length > 0 ? { props: customProps } : {};
 
@@ -322,10 +374,23 @@ const update = async (id, editor) => {
   const codeObject =
     codeHasChanged && newCode !== undefined ? { code: newCode } : {};
   const clickObject = clickFired ? { click } : {};
-  const newMeta = { ...codeObject, ...resultObject, ...clickObject };
+  const errorColorCacheObject = errorColorCacheHasChanged
+    ? { errorColorCache: nextErrorColorCache }
+    : {};
+  const newMeta = {
+    ...codeObject,
+    ...resultObject,
+    ...clickObject,
+    ...errorColorCacheObject,
+  };
+  const newProps = nextColor ? { color: nextColor } : {};
   let newCurrentShape;
-  if (Object.keys(newMeta).length > 0) {
-    newCurrentShape = { id, meta: newMeta };
+  let areNewMeta = Object.keys(newMeta).length > 0;
+  let newMetaObject = areNewMeta ? { meta: newMeta } : {};
+  let areNewProps = Object.keys(newProps).length > 0;
+  let newPropsObject = areNewProps ? { props: newProps } : {};
+  if (areNewMeta || areNewProps) {
+    newCurrentShape = { id, ...newMetaObject, ...newPropsObject };
   }
 
   log("newCurrentShape", newCurrentShape);
@@ -338,31 +403,6 @@ const update = async (id, editor) => {
   if (newShapes.length > 0) {
     editor.updateShapes(newShapes);
   }
-};
-
-const setNewProps = (arrowText, source, newProps) => {
-  // Prop
-  const propName = arrowText.slice(1, -1);
-  let value;
-  const propType = propTypes[propName];
-  if (propType === "string") {
-    value = source; // Allow all text to come in as a string
-  } else if (source === "") {
-    // Do nothing if its an empty string
-  } else if (propType === "number") {
-    value = Number(source);
-  } else if (propType === "boolean") {
-    value = Boolean(castInput(source)); //  Enable dynamic JS typing
-  } else if (propType === "object") {
-    value = castInput(source);
-  } else {
-    value = castInput(source); // Catch all
-  }
-  // newProps = setNestedProperty(newProps, propName, value);
-  if (value !== undefined) {
-    newProps[propName] = value;
-  }
-  return newProps;
 };
 
 export default update;
