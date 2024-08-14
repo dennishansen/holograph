@@ -205,9 +205,9 @@ const update = async (id, editor) => {
       let argValues = [];
       inputArrows.forEach((arrow) => {
         const { text: arrowText, start } = arrow.props;
-        const shape = editor.getShape(start.boundShapeId);
         const isSettingProp = isInQuotes(arrowText);
-        if (shape && !isSettingProp) {
+        if (start.boundShapeId && !isSettingProp) {
+          const shape = editor.getShape(start.boundShapeId);
           const { meta = {} } = shape;
           const source = getValueFromShape(arrowText, shape, meta.result);
           let name;
