@@ -1,6 +1,53 @@
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@500;700&display=swap");
 @import url("tldraw/tldraw.css");
 
+@font-face {
+  font-family: "Monaspace";
+  src: url("/FontWithASyntaxHighlighter-Regular.woff2") format("woff2");
+}
+/* prettier-ignore */
+@font-palette-values --kung-fury-light {
+  font-family: "Monaspace";
+  override-colors:
+    0 #3A6DF5,  /* keywords, {} */
+    1 #0E7C54,  /* comments */
+    2 #2E51B3,  /* literals */
+    3 #1C3A87,  /* numbers */
+    4 #9C2FB7,  /* functions, [] */
+    5 #000000,  /* js others */
+    6 #000000,  /* not in use */
+    7 #E14F0C;  /* inside quotes, css properties, few chars */
+}
+
+/* prettier-ignore */
+@font-palette-values --kung-fury-dark {
+  font-family: "Monaspace";
+  override-colors:
+    0 #4EAEF5,  /* keywords, {} */
+    1 #179169,  /* comments */
+    2 #4EAEF5,  /* literals */
+    3 #4EAEF5,  /* numbers */
+    4 #FFBE41,  /* functions, [] */
+    5 #F2F2F2,  /* js others */
+    6 #9399BB,  /* not in use */
+    7 #FE8788;  /* inside quotes, css properties, few chars */
+}
+
+/* Default (light) mode */
+div[data-font="mono"] * {
+  font-family: "Monaspace", monospace;
+  font-palette: --kung-fury-light;
+  color: #000000;
+  /* letter-spacing: -0.5px; */
+}
+
+/* Dark mode */
+[data-color-mode="dark"] div[data-font="mono"] * {
+  font-palette: --kung-fury-dark;
+  color: #ffffff;
+  font-size-adjust: 0.49;
+}
+
 body {
   font-family: "Inter";
 }

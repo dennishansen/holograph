@@ -3,11 +3,13 @@ import {
   TldrawUiPopover,
   TldrawUiPopoverContent,
   TldrawUiPopoverTrigger,
+  useIsDarkMode,
 } from "tldraw";
 
 // import { get } from "@vercel/edge-config";
 
 const SharePanel = () => {
+  const isDarkMode = useIsDarkMode();
   return (
     <div style={{ display: "flex", margin: "8px 8px 0 0" }}>
       <TldrawUiPopover id="explore">
@@ -15,7 +17,11 @@ const SharePanel = () => {
           <TldrawUiButton
             type={"normal"}
             title={"explore"}
-            style={{ backgroundColor: "rgb(237, 240, 242)" }}
+            style={{
+              backgroundColor: isDarkMode
+                ? "rgb(26, 26, 28)"
+                : "rgb(237, 240, 242)",
+            }}
           >
             Explore
           </TldrawUiButton>

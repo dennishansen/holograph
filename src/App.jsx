@@ -31,6 +31,7 @@ const allKeysInArray = (obj, arr) => {
 export default function StoreEventsExample() {
   const [editor, setEditor] = useState();
   const [showUpdate, setShowUpdate] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(false);
   // Last update: lazy arrows
 
   const setAppToState = useCallback((editor) => {
@@ -76,7 +77,46 @@ export default function StoreEventsExample() {
       lastUpdateSeen = visitTime;
     }
     setShowUpdate(!showTutorial && lastUpdateSeen < latestUpdateTime);
-  }, [editor]);
+
+    // Observe dark mode changes
+    const targetNode = document.querySelector("#root > div > div.tl-container");
+
+    // Create a MutationObserver instance
+    const observer = new MutationObserver((mutationsList) => {
+      for (const mutation of mutationsList) {
+        if (
+          mutation.type === "attributes" &&
+          mutation.attributeName === "data-color-mode"
+        ) {
+          // Handle the change
+          const newMode = mutation.target.getAttribute("data-color-mode");
+          const newIsDarkMode = newMode === "dark";
+          setIsDarkMode(newIsDarkMode);
+        }
+      }
+    });
+
+    // Configuration for the observer
+    const config = {
+      attributes: true, // Watch for attribute changes
+      attributeFilter: ["data-color-mode"], // Only observe the specific attribute
+    };
+
+    // Start observing the target node
+    observer.observe(targetNode, config);
+
+    // Add created meta for backwards compat with setting defaults
+    let shapesWithNewMeta = [];
+    for (let record of allRecords) {
+      if (record.typeName === "shape" && !record.meta.createdAt) {
+        shapesWithNewMeta.push({
+          id: record.id,
+          meta: { createdAt: Date.now() },
+        });
+      }
+    }
+    editor.updateShapes(shapesWithNewMeta, isDarkMode);
+  }, [editor, isDarkMode]);
 
   useEffect(() => {
     if (!editor) return;
@@ -86,6 +126,39 @@ export default function StoreEventsExample() {
       // Added
       for (const record of Object.values(change.changes.added)) {
         if (record.typeName === "shape") {
+          // Add code formatting to rectangles
+          if (record.props.geo === "rectangle") {
+            // Set defaults
+            if (!editor.getShape(record.id).meta.createdAt) {
+              // Set defaults if its newly created
+              editor.updateShape({
+                id: record.id,
+                props: { fill: "semi", font: "mono" }, // NOTE: always adding classes
+                meta: { createdAt: Date.now() },
+              });
+            }
+          } else if (record.props.geo === "ellipse") {
+            // Set defaults
+            if (!editor.getShape(record.id).meta.createdAt) {
+              // Set defaults if its newly created
+              editor.updateShape({
+                id: record.id,
+                props: { fill: "semi", font: "mono" },
+                meta: { createdAt: Date.now() },
+              });
+            }
+          } else if (record.type === "text") {
+            // Set defaults
+            if (!editor.getShape(record.id).meta.createdAt) {
+              // Set defaults if its newly created
+              editor.updateShape({
+                id: record.id,
+                props: { font: "draw" },
+                meta: { createdAt: Date.now() },
+              });
+            }
+          }
+
           // console.log(`created shape (${JSON.stringify(record)})\n`);
         }
       }
@@ -95,6 +168,7 @@ export default function StoreEventsExample() {
         if (from.id.startsWith("shape") && to.id.startsWith("shape")) {
           let diff = deepDiff(from, to);
           let ignore = allKeysInArray(diff, ignoredKeys);
+
           // // console.log("metalast: ", diff["meta.lastUpdated"]);
           // if (diff["meta.lastUpdated"]) {
           //   ignore = true;
@@ -188,7 +262,7 @@ export default function StoreEventsExample() {
       <Tldraw
         onMount={setAppToState}
         persistenceKey="holograph-1"
-        components={components}
+        components={editor ? components : {}} // Makes hooks usable
         overrides={overrides}
       />
       <Analytics />

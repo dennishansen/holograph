@@ -14,6 +14,7 @@ import {
   useActions,
   useExportAs,
   useUiEvents,
+  useIsDarkMode,
 } from "tldraw";
 import useMediaQuery from "./useMediaQuery";
 
@@ -39,6 +40,7 @@ const CustomMainMenu = ({
   const actions = useActions();
   const exportAs = useExportAs();
   const trackEvent = useUiEvents();
+  const isDarkMode = useIsDarkMode();
 
   const isMobile = useMediaQuery("(max-width: 414px)");
 
@@ -63,6 +65,12 @@ const CustomMainMenu = ({
           editor.updatePage({ id: editor.getCurrentPageId(), name });
         }
         const jsonData = JSON.parse(event.target.result);
+        // Backwards compatability: Append createdAt so defaults work
+        const now = Date.now();
+        jsonData.shapes = jsonData.shapes.map((shape) => ({
+          ...shape,
+          meta: { createdAt: now },
+        }));
         editor.putContentOntoCurrentPage(jsonData, { select: true });
       };
       reader.readAsText(file);
@@ -163,7 +171,9 @@ const CustomMainMenu = ({
                 readonlyOk
                 onSelect={whatsNew}
                 style={{
-                  backgroundColor: "rgb(237, 240, 242)",
+                  backgroundColor: isDarkMode
+                    ? "rgb(26, 26, 28)"
+                    : "rgb(237, 240, 242)",
                 }}
               />
             </div>
@@ -175,7 +185,9 @@ const CustomMainMenu = ({
           type={"normal"}
           title={"Whats new"}
           style={{
-            backgroundColor: "rgb(237, 240, 242)",
+            backgroundColor: isDarkMode
+              ? "rgb(26, 26, 28)"
+              : "rgb(237, 240, 242)",
             position: "absolute",
             top: 0,
             right: showUpdate ? -89 : -71,
