@@ -38,11 +38,12 @@ div[data-font="mono"] * {
   font-family: "Monaspace", monospace;
   font-palette: --kung-fury-light;
   color: #000000;
-  /* letter-spacing: -0.5px; */
+  font-size-adjust: 0.49;
 }
 
 /* Dark mode */
 [data-color-mode="dark"] div[data-font="mono"] * {
+  font-family: "Monaspace", monospace;
   font-palette: --kung-fury-dark;
   color: #ffffff;
   font-size-adjust: 0.49;
