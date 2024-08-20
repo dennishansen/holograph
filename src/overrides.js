@@ -1,3 +1,9 @@
+const removeIndexes = (shapes) => {
+  // eslint-disable-next-line no-unused-vars
+  const newShapes = shapes.map(({ index, ...shape }) => shape);
+  return newShapes;
+};
+
 const overrides = {
   actions(_editor, actions) {
     const newActions = {
@@ -43,7 +49,8 @@ const overrides = {
             }
           }
 
-          _editor.createShapes(newShapes, { select: true });
+          const shapesWithoutIndexes = removeIndexes(newShapes);
+          _editor.createShapes(shapesWithoutIndexes, { select: true });
           _editor.deselect(...Object.keys(idLookup));
           _editor.select(...Object.keys(idLookup).map((id) => idLookup[id]));
         },
