@@ -11,6 +11,7 @@ import SharePanel from "./SharePanel";
 import { Analytics } from "@vercel/analytics/react";
 import update from "./update";
 import overrides from "./overrides";
+import appendCreatedAt from "./appendCreatedAt";
 
 const latestUpdateTime = 1721928965296;
 
@@ -61,6 +62,7 @@ export default function StoreEventsExample() {
           if (response.ok) return response.json();
         })
         .then((tutorial) => {
+          tutorial = appendCreatedAt(tutorial);
           editor.createAssets(tutorial.assets);
           editor.createShapes(tutorial.shapes);
         });

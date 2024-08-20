@@ -17,6 +17,7 @@ import {
   useIsDarkMode,
 } from "tldraw";
 import useMediaQuery from "./useMediaQuery";
+import appendCreatedAt from "./appendCreatedAt";
 
 const Star = ({ style }) => (
   <img
@@ -66,12 +67,10 @@ const CustomMainMenu = ({
         }
         const jsonData = JSON.parse(event.target.result);
         // Backwards compatability: Append createdAt so defaults work
-        const now = Date.now();
-        jsonData.shapes = jsonData.shapes.map((shape) => ({
-          ...shape,
-          meta: { createdAt: now },
-        }));
-        editor.putContentOntoCurrentPage(jsonData, { select: true });
+        const jsonDataWithCreatedAt = appendCreatedAt(jsonData);
+        editor.putContentOntoCurrentPage(jsonDataWithCreatedAt, {
+          select: true,
+        });
       };
       reader.readAsText(file);
     };
@@ -96,7 +95,8 @@ const CustomMainMenu = ({
         const id = "page:how-to" + seed;
         editor.createPage({ name: "How to", id });
         editor.setCurrentPage(id);
-        editor.putContentOntoCurrentPage(tutorial);
+        const tutorialWithCreatedAt = appendCreatedAt(tutorial);
+        editor.putContentOntoCurrentPage(tutorialWithCreatedAt);
         // Set local item that visited update
         localStorage.setItem("lastUpdateSeen", latestUpdateTime);
         setShowUpdate(false);
