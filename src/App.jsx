@@ -80,6 +80,8 @@ export default function StoreEventsExample() {
     }
     setShowUpdate(!showTutorial && lastUpdateSeen < latestUpdateTime);
 
+    localStorage.setItem("lastUpdateSeen", lastUpdateSeen);
+
     // Observe dark mode changes
     const targetNode = document.querySelector("#root > div > div.tl-container");
 
