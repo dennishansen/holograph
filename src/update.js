@@ -156,7 +156,7 @@ const setNewProps = (arrowText, source, newProps) => {
   }
 
   // Throw any prop value errors
-  if (propName === "color" && value !== undefined && !colors[value]) {
+  if (propName === "color" && value !== undefined && !colors.includes(value)) {
     // Alert showing the valid colors
     document.toasts.addToast({
       id: "bad-color",
