@@ -19,6 +19,8 @@ const wait = async (arg, delay) => {
   return new Promise((resolve) => setTimeout(() => resolve(arg), delay));
 };
 
+const errorString = "error-3n5al";
+
 const propTypes = {
   x: "number",
   y: "number",
@@ -46,6 +48,22 @@ const propTypes = {
   typeName: "string",
   points: "object",
 };
+
+const colors = [
+  "black",
+  "grey",
+  "light-violet",
+  "violet",
+  "blue",
+  "light-blue",
+  "yellow",
+  "orange",
+  "green",
+  "light-green",
+  "light-red",
+  "red",
+  "white",
+];
 
 const getValue = (obj, path) => {
   return path.split(".").reduce((acc, key) => acc && acc[key], obj);
@@ -136,6 +154,19 @@ const setNewProps = (arrowText, source, newProps) => {
   } else {
     value = castInput(source); // Catch all
   }
+
+  // Throw any prop value errors
+  if (propName === "color" && value !== undefined && !colors[value]) {
+    // Alert showing the valid colors
+    document.toasts.addToast({
+      id: "bad-color",
+      title: "Invalid Color",
+      description: "Please choose from: " + colors.join(", "),
+      severity: "error",
+    });
+    value = undefined;
+  }
+
   // newProps = setNestedProperty(newProps, propName, value);
   if (value !== undefined) {
     newProps[propName] = value;
@@ -176,8 +207,8 @@ const update = async (id, editor) => {
 
   // Log red shapes
   let debug = false;
-  // if (currentShape?.props?.fill === "pattern" && import.meta.env.DEV)
-  //   debug = true;
+  if (currentShape?.props?.fill === "pattern" && import.meta.env.DEV)
+    debug = true;
   const log = (...args) => debug && console.log(...args);
   log("-------------------------------");
   log("update ", currentShape?.props?.text, currentShape?.props?.geo, id);
@@ -261,6 +292,12 @@ const update = async (id, editor) => {
           log("newResult", newResult);
         }
       }
+
+      // Assign error string if there is an error
+      if (error) {
+        newResult = errorString;
+      }
+
       resultHasChanged = result !== newResult;
 
       // Handle any function errors
@@ -271,6 +308,7 @@ const update = async (id, editor) => {
           nextColor = "red";
           nextErrorColorCache = props.color;
         }
+        // Set results to error code
       } else {
         // Succeeded. Set color if there was an error last run
         if (errorColorCache !== "none") {
@@ -306,7 +344,12 @@ const update = async (id, editor) => {
   let downstreamShapes = [];
   outputArrows.forEach((arrow) => {
     const { text: arrowText, end, dash } = arrow.props;
-    const endShape = editor.getShape(end.boundShapeId);
+    let endShape;
+    try {
+      endShape = editor.getShape(end.boundShapeId);
+    } catch (e) {
+      // console.log("error", e);
+    }
     if (dash !== "dashed" && endShape) {
       // let { nextArgUpdate } = meta;
       let nextArgUpdate;
@@ -316,8 +359,8 @@ const update = async (id, editor) => {
 
       // Set to desintation
       let newProps = {};
-      if (source === undefined) {
-        // Error
+      if (source === undefined || source === errorString) {
+        // No result or code error
       } else if (isInQuotes(arrowText)) {
         // Prop
         newProps = setNewProps(arrowText, source, newProps);

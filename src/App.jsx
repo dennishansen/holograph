@@ -17,6 +17,8 @@ const latestUpdateTime = 1721928965296;
 
 let mounted = false;
 
+document.toasts = () => {};
+
 const ignoredKeys = [
   "meta.result",
   "meta.code",
@@ -29,7 +31,7 @@ const allKeysInArray = (obj, arr) => {
   return Object.keys(obj).every((key) => arr.some((str) => key.includes(str)));
 };
 
-export default function StoreEventsExample() {
+const App = () => {
   const [editor, setEditor] = useState();
   const [showUpdate, setShowUpdate] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
@@ -272,4 +274,6 @@ export default function StoreEventsExample() {
       <Analytics />
     </div>
   );
-}
+};
+
+export default App;

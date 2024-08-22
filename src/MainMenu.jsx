@@ -5,7 +5,6 @@ import {
   TldrawUiMenuItem,
   EditSubmenu,
   ViewSubmenu,
-  // ExportFileContentSubMenu,
   ToggleTransparentBgMenuItem,
   TldrawUiMenuSubmenu,
   ExtrasGroup,
@@ -15,9 +14,11 @@ import {
   useExportAs,
   useUiEvents,
   useIsDarkMode,
+  useToasts,
 } from "tldraw";
 import useMediaQuery from "./useMediaQuery";
 import appendCreatedAt from "./appendCreatedAt";
+import { useEffect } from "react";
 
 const Star = ({ style }) => (
   <img
@@ -42,6 +43,14 @@ const CustomMainMenu = ({
   const exportAs = useExportAs();
   const trackEvent = useUiEvents();
   const isDarkMode = useIsDarkMode();
+  const toasts = useToasts();
+
+  useEffect(() => {
+    document.toasts = toasts;
+    return () => {
+      document.toasts = () => {};
+    };
+  }, []);
 
   const isMobile = useMediaQuery("(max-width: 414px)");
 
