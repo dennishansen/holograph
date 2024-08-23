@@ -174,10 +174,58 @@ const setNewProps = (arrowText, source, newProps) => {
   return newProps;
 };
 
+const sizeMap = {
+  s: {
+    offset: 4,
+    borderRadius: 4,
+  },
+  m: {
+    offset: 6,
+    borderRadius: 6,
+  },
+  l: {
+    offset: 7,
+    borderRadius: 8,
+  },
+  xl: {
+    offset: 10,
+    borderRadius: 12,
+  },
+};
+
+const highlightShape = (currentShape, propagationId) => {
+  const {
+    id,
+    props: { geo, size },
+  } = currentShape;
+  const svg = document.getElementById(id);
+  svg.classList.add("is-propagating-" + propagationId);
+  const { offset, borderRadius } = sizeMap[size];
+  if (geo === "rectangle") {
+    svg.style.outlineOffset = `${offset}px`;
+    svg.style.borderRadius = `${borderRadius}px`;
+  } else if (geo === "ellipse") {
+    svg.style.outlineOffset = `${offset}px`;
+    svg.style.borderRadius = "50%";
+  }
+};
+
+const unhightlightShapes = (propagationId) => {
+  const classId = "is-propagating-" + propagationId;
+  const propagatingShapes = document.getElementsByClassName(classId);
+  while (propagatingShapes.length) {
+    propagatingShapes[0].classList.remove(classId);
+  }
+};
+
 const update = async (id, editor) => {
   const currentShape = editor.getShape(id);
 
   if (!currentShape) return;
+
+  const propagationId = performance.now().toString().replace(".", "");
+  const debugPropagation = document.debugPropagation;
+  debugPropagation && highlightShape(currentShape, propagationId);
 
   const arrows = editor.getArrowsBoundTo(id);
   let inputArrows = [];
@@ -267,8 +315,8 @@ const update = async (id, editor) => {
         argValues.push(fetch);
         argNames.push("wait");
         argValues.push(wait);
-        // argNames.push("editor");
-        // argValues.push(editor);
+        argNames.push("editor");
+        argValues.push(editor);
         // argNames.push("currentShape");
         // argValues.push(currentShape);
         const AsyncFunction = Object.getPrototypeOf(
@@ -443,9 +491,16 @@ const update = async (id, editor) => {
   if (newCurrentShape) {
     newShapes = [newCurrentShape, ...downstreamShapes];
   }
+
+  if (debugPropagation) {
+    await wait(null, 1000);
+  }
+
   if (newShapes.length > 0) {
     editor.updateShapes(newShapes);
   }
+
+  unhightlightShapes(propagationId);
 };
 
 export default update;

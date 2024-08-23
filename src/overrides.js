@@ -80,6 +80,21 @@ const overrides = {
           _editor.deleteShapes([...connectedArrows, ...selectedShapes]);
         },
       },
+      "Toggle debug mode": {
+        id: "toggle-debug-mode",
+        label: "Toggle debug mode",
+        readonlyOk: true,
+        kbd: "$k",
+        onSelect() {
+          document.debugPropagation = !document.debugPropagation;
+          document.toasts.addToast({
+            id: "debug-propagation",
+            description: `Debug propagation mode ${
+              document.debugPropagation ? "enabled" : "disabled"
+            }`,
+          });
+        },
+      },
     };
 
     return newActions;

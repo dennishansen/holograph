@@ -49,6 +49,10 @@ div[data-font="mono"] * {
   font-size-adjust: 0.49;
 }
 
+[class*="is-propagating-"] {
+  outline: 3px solid #f14b4b;
+}
+
 body {
   font-family: "Inter";
 }
