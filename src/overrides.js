@@ -92,6 +92,7 @@ const overrides = {
             description: `Debug propagation mode ${
               document.debugPropagation ? "enabled" : "disabled"
             }`,
+            keepOpen: false,
           });
         },
       },

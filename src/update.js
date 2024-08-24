@@ -199,6 +199,7 @@ const highlightShape = (currentShape, propagationId) => {
     props: { geo, size },
   } = currentShape;
   const svg = document.getElementById(id);
+  if (!svg) return;
   svg.classList.add("is-propagating-" + propagationId);
   const { offset, borderRadius } = sizeMap[size];
   if (geo === "rectangle") {
